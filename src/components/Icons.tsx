@@ -113,3 +113,41 @@ export const IconChevron = (p: P) => (
     <path d="m9 6 6 6-6 6" />
   </Base>
 )
+
+export const IconLink = (p: P) => (
+  <Base {...p}>
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+    <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+  </Base>
+)
+
+export const IconNote = (p: P) => (
+  <Base {...p}>
+    <path d="M5 4h14v11l-5 5H5z" />
+    <path d="M14 20v-5h5M8.5 9h7M8.5 12.5h4" />
+  </Base>
+)
+
+export const IconTrash = (p: P) => (
+  <Base {...p}>
+    <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
+  </Base>
+)
+
+export const IconSend = (p: P) => (
+  <Base {...p}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Base>
+)
+
+export const IconDownload = (p: P) => (
+  <Base {...p}>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+  </Base>
+)
+
+export const IconUpload = (p: P) => (
+  <Base {...p}>
+    <path d="M12 16V5M7 10l5-5 5 5M5 20h14" />
+  </Base>
+)

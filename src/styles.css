@@ -1027,3 +1027,234 @@ p {
   font-size: 14px;
   white-space: nowrap;
 }
+
+/* ===== Поля ввода и формы ===== */
+.input {
+  width: 100%;
+  font: inherit;
+  font-size: 16px; /* 16px — чтобы iOS/Android не увеличивали страницу при фокусе */
+  color: var(--text);
+  background: var(--card-soft);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  resize: vertical;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  background: var(--card);
+}
+
+.input:disabled {
+  opacity: 0.5;
+}
+
+select.input {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-2) 50%), linear-gradient(135deg, var(--text-2) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  color: var(--accent-ink);
+  min-width: 0;
+}
+
+.link-row a {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.link-row button {
+  color: var(--text-2);
+  padding: 4px 8px;
+}
+
+/* ===== Быстрый ввод ===== */
+.quick-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick .input {
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.quick .input:focus {
+  border-color: var(--accent);
+}
+
+.quick-send {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-grad);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-strong);
+}
+
+.quick-send:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.quick-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--card-soft);
+}
+
+.chip-accent {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.chip-sky {
+  background: var(--sky-soft);
+}
+
+.chip-muted {
+  color: var(--text-2);
+}
+
+/* ===== Задания ===== */
+.task-list {
+  padding: 4px 6px;
+}
+
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.task-row + .task-row {
+  border-top: 1px solid var(--line);
+}
+
+.task-check {
+  padding: 12px 8px 12px 8px;
+  flex-shrink: 0;
+  display: grid;
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 12px 10px 12px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-title {
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.task-row.done .task-title {
+  text-decoration: line-through;
+  color: var(--text-2);
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.due {
+  color: var(--accent-ink);
+}
+
+.due.overdue {
+  color: var(--danger);
+}
+
+.task-subject {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.section-title.danger {
+  color: var(--danger);
+}
+
+.section-title .count {
+  color: var(--text-2);
+  font-weight: 700;
+  font-size: 15px;
+  margin-left: 4px;
+}
+
+.subject-filter {
+  margin: 0 0 6px;
+  background-color: var(--card);
+  box-shadow: var(--shadow);
+}
+
+/* плитки на «Сегодня» — кнопки */
+button.tile {
+  text-align: left;
+  width: 100%;
+  transition: transform 0.12s;
+}
+
+button.tile:active {
+  transform: scale(0.97);
+}

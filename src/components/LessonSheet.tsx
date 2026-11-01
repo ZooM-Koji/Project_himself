@@ -11,6 +11,8 @@ import {
 } from '../lib/schedule'
 import { ChangeBadge, shortKind } from './LessonCard'
 import Sheet from './Sheet'
+import TaskEditor from './TaskEditor'
+import { useSubjects, useTasks } from '../lib/tasks'
 
 const FIELD_NAMES: Partial<Record<keyof RuzLesson, string>> = {
   subject: 'Предмет',
@@ -63,6 +65,8 @@ function ChangeNote({ s }: { s: ShownLesson }) {
 
 export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () => void }) {
   const [busy, setBusy] = useState(false)
+  const [newTask, setNewTask] = useState(false)
+  const subjects = useSubjects(useTasks())
   const act = (fn: () => Promise<void>) => async () => {
     setBusy(true)
     await fn()
@@ -103,11 +107,15 @@ export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () 
   }
 
   const s = it.item
+  if (newTask) return <TaskEditor draft={{ title: '', subject: s.lesson.subject }} subjects={subjects} onClose={onClose} />
   return (
     <Sheet title={s.lesson.subject} onClose={onClose}>
       <ChangeNote s={s} />
       <Details l={s.lesson} />
       <div className="sheet-actions">
+        <button className="pill primary" onClick={() => setNewTask(true)}>
+          + Задание по предмету
+        </button>
         {!isWholeGroup(s.lesson) && (
           <button className="pill" disabled={busy} onClick={act(() => chooseMyGroup(s.lesson))}>
             Это моя группа

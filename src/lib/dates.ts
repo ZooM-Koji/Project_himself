@@ -70,3 +70,22 @@ export function formatDuration(min: number): string {
   if (h === 0) return `${m} мин`
   return m ? `${h} ч ${m} мин` : `${h} ч`
 }
+
+const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
+
+/** Срок задания коротко: «сегодня», «завтра», «пт, 6 ноя», «6 ноя 2027» (+ « в 18:00»). */
+export function formatDue(dueDate: string, dueTime: string | undefined, now: Date): string {
+  const d = fromIso(dueDate)
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const days = Math.round((d.getTime() - today.getTime()) / 86_400_000)
+  let s: string
+  if (days === 0) s = 'сегодня'
+  else if (days === 1) s = 'завтра'
+  else if (days === -1) s = 'вчера'
+  else {
+    const wd = d.toLocaleDateString('ru-RU', { weekday: 'short' })
+    s = `${wd}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`
+    if (d.getFullYear() !== now.getFullYear()) s += ` ${d.getFullYear()}`
+  }
+  return dueTime ? `${s} в ${dueTime}` : s
+}
