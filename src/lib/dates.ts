@@ -51,3 +51,22 @@ export function greeting(d: Date): string {
   if (h < 18) return 'Привет'
   return 'Добрый вечер'
 }
+
+/** «2026-11-02» → Date (местная полночь) */
+export function fromIso(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+/** «Понедельник, 2 ноября» */
+export function formatIsoLong(iso: string): string {
+  return formatLongDate(fromIso(iso))
+}
+
+/** 85 → «1 ч 25 мин» */
+export function formatDuration(min: number): string {
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  if (h === 0) return `${m} мин`
+  return m ? `${h} ч ${m} мин` : `${h} ч`
+}

@@ -1,0 +1,49 @@
+# Загрузка расписания из РУЗ САФУ 3 раза в день: 6:17, 12:17, 18:17 по Москве.
+# Если расписание изменилось — коммитим public/data/schedule.json и пересобираем сайт.
+name: Расписание из РУЗ
+
+on:
+  schedule:
+    - cron: '17 3,9,15 * * *' # время в UTC, Москва = UTC+3
+  workflow_dispatch: # кнопка «Run workflow» — обновить прямо сейчас
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: schedule
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Скачать расписание
+        run: node scripts/fetch-schedule.mjs
+      - name: Сохранить, если изменилось
+        id: commit
+        run: |
+          if git diff --quiet -- public/data/schedule.json; then
+            echo "Расписание не изменилось."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data/schedule.json
+            git commit -m "Расписание: обновление из РУЗ"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: fetch
+    if: needs.fetch.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml
