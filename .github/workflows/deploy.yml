@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch: # кнопка «Run workflow» для ручного запуска
+  workflow_call: # вызывается из schedule.yml после обновления расписания
 
 permissions:
   contents: read
@@ -20,11 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Свежая версия ветки: после schedule.yml там уже лежит новый schedule.json
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
