@@ -230,6 +230,8 @@ export interface ScheduleView {
   day: (date: string) => DayItem[]
   /** Даты с изменениями (для точек в ленте дат) */
   changedDates: Set<string>
+  /** Все пары с учётом «моей группы» и скрытых (для «к следующей паре») */
+  lessons: RuzLesson[]
 }
 
 export function useSchedule(): ScheduleView {
@@ -263,6 +265,7 @@ export function useSchedule(): ScheduleView {
     covers: (d) => !!file && d >= file.range.from && d <= file.range.to,
     day: (d) => buildDay(d, byDate.get(d) ?? [], visibleChanges),
     changedDates,
+    lessons: visible,
   }
 }
 

@@ -1258,3 +1258,12 @@ button.tile {
 button.tile:active {
   transform: scale(0.97);
 }
+
+.quick-hint {
+  flex-basis: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--warn-soft);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
