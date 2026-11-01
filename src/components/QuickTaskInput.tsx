@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { formatDue } from '../lib/dates'
 import { parseQuick } from '../lib/quickParse'
+import { useSchedule } from '../lib/schedule'
+import { shortKind } from './LessonCard'
 import { addTask, type TaskDraft } from '../lib/tasks'
 import { IconSend } from './Icons'
+
+const KIND_GEN: Record<string, string> = { лекция: 'лекций', практика: 'практик', лабораторная: 'лабораторных' }
 
 /**
  * Строка быстрого ввода: «конспект по страхованию до пт».
@@ -20,8 +24,9 @@ export default function QuickTaskInput({
   autoFocus?: boolean
 }) {
   const [text, setText] = useState('')
+  const { lessons } = useSchedule()
   const now = new Date()
-  const r = parseQuick(text, now, subjects)
+  const r = parseQuick(text, now, subjects, lessons)
   const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime }
 
   const submit = async (e: React.FormEvent) => {
@@ -51,10 +56,25 @@ export default function QuickTaskInput({
       {text.trim() && (
         <div className="quick-preview">
           <span className="chip">{r.title || 'без названия'}</span>
-          <span className={r.dueDate ? 'chip chip-accent' : 'chip chip-muted'}>
-            {r.dueDate ? `до ${formatDue(r.dueDate, r.dueTime, now)}` : 'без срока'}
-          </span>
+          {r.pair?.found ? (
+            <span className="chip chip-accent">
+              к паре ({shortKind(r.pair.found.kind).toLowerCase()}): {formatDue(r.pair.found.date, r.pair.found.start, now)}
+            </span>
+          ) : (
+            <span className={r.dueDate ? 'chip chip-accent' : 'chip chip-muted'}>
+              {r.dueDate ? `до ${formatDue(r.dueDate, r.dueTime, now)}` : 'без срока'}
+            </span>
+          )}
           {r.subject && <span className="chip chip-sky">{r.subject}</span>}
+          {r.pair?.problem === 'no-subject' && (
+            <span className="quick-hint">Не понял, к паре по какому предмету — допиши, например «…по истории».</span>
+          )}
+          {r.pair?.problem === 'not-found' && (
+            <span className="quick-hint">
+              В опубликованном расписании больше нет {KIND_GEN[r.pair.kind ?? ''] ?? 'пар'} по предмету «{r.subject}» — срок не
+              поставлен.
+            </span>
+          )}
           {onMore && (
             <button type="button" className="link-btn" onClick={() => onMore(draft)}>
               Подробнее

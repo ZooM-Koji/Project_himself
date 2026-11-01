@@ -67,8 +67,64 @@ test('предмет угадывается по слову и по прозви
   assert.equal(p('матан дз').subject, 'Высшая математика')
   assert.equal(p('физра справка').subject, 'Прикладная физическая культура и спорт')
   assert.equal(p('купить тетради').subject, undefined)
+  const both = ['Социально-экономическая статистика', 'Экономическая теория']
+  assert.equal(parseQuick('эссе по экономике', NOW, both).subject, 'Экономическая теория')
+  assert.equal(parseQuick('задачи по статистике', NOW, both).subject, 'Социально-экономическая статистика')
 })
 
 test('без даты — только название', () => {
   assert.deepEqual(p('  прочитать главу 3  '), { title: 'Прочитать главу 3', dueDate: undefined, dueTime: undefined, subject: undefined })
+})
+
+// ---------- «к следующей паре» ----------
+const LESSONS = [
+  { date: '2026-11-01', start: '08:20', subject: 'История России', kind: 'Лекция' }, // уже прошла (сегодня утром)
+  { date: '2026-11-03', start: '19:40', subject: 'История России', kind: 'Лекция' },
+  { date: '2026-11-02', start: '10:10', subject: 'Высшая математика', kind: 'Практическое занятие' },
+  { date: '2026-11-05', start: '12:00', subject: 'Высшая математика', kind: 'Лекция' },
+  { date: '2026-11-06', start: '08:20', subject: 'Высшая математика', kind: 'Практическое занятие' },
+  { date: '2026-11-05', start: '10:10', subject: 'Цифровая культура', kind: 'Лабораторная работа' },
+]
+const pp = (s: string) => parseQuick(s, NOW, [...SUBJECTS, 'Практическая риторика'], LESSONS)
+
+test('«к следующей паре» — ближайшая будущая пара по предмету', () => {
+  const r = pp('доклад по истории к следующей паре')
+  assert.equal(r.title, 'Доклад по истории')
+  assert.equal(r.subject, 'История России')
+  assert.equal(r.dueDate, '2026-11-03')
+  assert.equal(r.dueTime, '19:40')
+  assert.deepEqual(r.pair?.found, { date: '2026-11-03', start: '19:40', kind: 'Лекция' })
+})
+
+test('тип занятия: практика / лекция / лаба', () => {
+  assert.equal(pp('дз по матану к следующей практике').dueDate, '2026-11-02')
+  assert.equal(pp('дз по матану к следующей практике').subject, 'Высшая математика') // не «Практическая риторика»
+  assert.equal(pp('конспект к следующей лекции по матану').dueDate, '2026-11-05')
+  assert.equal(pp('отчёт к лабе по цифровой культуре').dueDate, '2026-11-05')
+  assert.equal(pp('отчёт к лабе по цифровой культуре').title, 'Отчёт по цифровой культуре')
+  assert.equal(pp('матан дз к след. паре').dueDate, '2026-11-02')
+  assert.equal(pp('матан дз к ближайшему занятию').dueDate, '2026-11-02')
+})
+
+test('«к паре в пятницу» — время пары в этот день', () => {
+  const r = pp('матан к паре в пятницу')
+  assert.equal(r.dueDate, '2026-11-06')
+  assert.equal(r.dueTime, '08:20')
+})
+
+test('предмет не понятен или пар нет — срок не ставим', () => {
+  const a = pp('сделать к следующей паре')
+  assert.equal(a.dueDate, undefined)
+  assert.equal(a.pair?.problem, 'no-subject')
+  assert.equal(a.title, 'Сделать')
+  const b = pp('эссе по экономике к следующей паре')
+  assert.equal(b.subject, 'Экономическая теория')
+  assert.equal(b.pair?.problem, 'not-found')
+  assert.equal(b.dueDate, undefined)
+})
+
+test('слово «пара» без «к/следующей» — обычный текст', () => {
+  const r = pp('пара вопросов по матану')
+  assert.equal(r.pair, undefined)
+  assert.equal(r.title, 'Пара вопросов по матану')
 })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { addDays } from '../lib/dates'
-import { isoDate } from '../lib/schedule'
+import { addDays, formatDue } from '../lib/dates'
+import { isoDate, useSchedule } from '../lib/schedule'
+import { findNextPair } from '../lib/quickParse'
 import { addTask, deleteTask, STATUS_LABEL, updateTask, type Task, type TaskDraft, type TaskStatus } from '../lib/tasks'
 import type { TaskLink } from '../lib/db'
 import { IconLink, IconTrash } from './Icons'
@@ -48,6 +49,8 @@ export default function TaskEditor({
   const [linkError, setLinkError] = useState(false)
 
   const now = new Date()
+  const { lessons } = useSchedule()
+  const nextPair = subject ? findNextPair(lessons, now, subject) : undefined
   const quickDates: [string, string][] = [
     ['Сегодня', isoDate(now)],
     ['Завтра', isoDate(addDays(now, 1))],
@@ -124,6 +127,16 @@ export default function TaskEditor({
         <div className="field">
           <span>Срок</span>
           <div className="chips" style={{ paddingBottom: 6 }}>
+            {nextPair && (
+              <button
+                type="button"
+                className={`pill small${dueDate === nextPair.date && dueTime === nextPair.start ? ' active' : ''}`}
+                title={formatDue(nextPair.date, nextPair.start, now)}
+                onClick={() => (setDueDate(nextPair.date), setDueTime(nextPair.start))}
+              >
+                К след. паре
+              </button>
+            )}
             {quickDates.map(([label, d]) => (
               <button key={label} type="button" className={`pill small${dueDate === d ? ' active' : ''}`} onClick={() => setDueDate(d)}>
                 {label}
