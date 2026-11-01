@@ -15,10 +15,10 @@ jobs:
         run: |
           mkdir out
           UA="Zachetka-schedule (+https://github.com/ZooM-Koji/Project_himself)"
-          for name in "group:https://ruz.narfu.ru/?timetable&group=21077" "root:https://ruz.narfu.ru/"; do
+          for name in "ics:https://ruz.narfu.ru/?icalendar&oid=21077&cod=171606"; do
             key="${name%%:*}"; url="${name#*:}"
-            code=$(curl -sS -m 30 -A "$UA" -o "out/$key.html" -w '%{http_code}' "$url" || echo ERR)
-            echo "$key $url -> $code ($(wc -c < out/$key.html 2>/dev/null) bytes)"
+            code=$(curl -sS -m 30 -A "$UA" -o "out/$key.txt" -w '%{http_code}' "$url" || echo ERR)
+            echo "$key $url -> $code ($(wc -c < out/$key.txt 2>/dev/null) bytes)"
           done
           curl -sS -m 10 https://ipinfo.io/country || true
       - uses: actions/upload-artifact@v4
