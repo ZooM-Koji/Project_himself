@@ -1,24 +1,24 @@
-import { IconCalendar, IconStar, IconTasks } from './Icons'
+import { useState } from 'react'
+import { useSubjects, useTasks, type TaskDraft } from '../lib/tasks'
+import QuickTaskInput from './QuickTaskInput'
 import Sheet from './Sheet'
+import TaskEditor from './TaskEditor'
 
-const ITEMS = [
-  { title: 'Задание', hint: 'Будет на этапе 1.5', icon: <IconTasks /> },
-  { title: 'Событие', hint: 'Будет на этапе 3', icon: <IconStar /> },
-  { title: 'Пара вручную', hint: 'Скоро', icon: <IconCalendar /> },
-]
-
+/** Кнопка «+»: быстрое задание одной строкой (или подробная форма). */
 export default function QuickAddSheet({ onClose }: { onClose: () => void }) {
+  const subjects = useSubjects(useTasks())
+  const [draft, setDraft] = useState<TaskDraft | null>(null)
+  const [added, setAdded] = useState(0)
+
+  if (draft) return <TaskEditor draft={draft} subjects={subjects} onClose={onClose} />
+
   return (
-    <Sheet title="Добавить" onClose={onClose}>
-      {ITEMS.map((i) => (
-        <div key={i.title} className="row-link" style={{ opacity: 0.6 }}>
-          <span className="row-icon">{i.icon}</span>
-          <span className="row-text">
-            <span className="row-title">{i.title}</span>
-            <div className="muted">{i.hint}</div>
-          </span>
-        </div>
-      ))}
+    <Sheet title="Новое задание" onClose={onClose}>
+      <p className="muted" style={{ marginBottom: 10 }}>
+        Напиши одной строкой — срок и предмет я пойму сам: «эссе по истории к 15 ноября», «лаба по цифровой культуре завтра».
+      </p>
+      <QuickTaskInput subjects={subjects} autoFocus onAdded={() => setAdded((n) => n + 1)} onMore={setDraft} />
+      {added > 0 && <p className="note note-sky" style={{ marginTop: 10 }}>Добавлено: {added}. Можно ввести ещё.</p>}
     </Sheet>
   )
 }

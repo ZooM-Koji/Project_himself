@@ -130,10 +130,16 @@ Claude, читай его в начале каждой сессии и свер�
 - `Subject` — id, name, teacher, room, color, notes, links[]
 - `Lesson` — id, subjectId, weekday, start, end, weekParity (all/odd/even), type, room
 - `Task` — id, subjectId | projectId, title, dueDate, status, notes, links[], createdAt, updatedAt
+  (сейчас, до этапа 2, вместо subjectId хранится `subject` — название предмета как в РУЗ;
+  на этапе 2 — миграция Dexie: создать Subject по названиям и проставить subjectId;
+  ещё есть dueTime и doneAt)
 - `Note` — id, subjectId | projectId, title, body (markdown), updatedAt
 - `Project` — id, title, kind (студсовет / мероприятие / репетиции / другое), notes
 - `Event` — id, projectId?, title, start, end, place
 - У всех записей: `updatedAt` и `deleted` (мягкое удаление — нужно для синхронизации).
+- Схема Dexie (`src/lib/db.ts`): v1 — kv, scheduleRules; v2 — tasks.
+- Резервная копия (`src/lib/backup.ts`): JSON `{app:'zachetka', format:1, tables:{…}}`,
+  при импорте слияние по `updatedAt`. Новые таблицы — добавлять и в копию.
 
 ## Этапы
 
@@ -141,7 +147,7 @@ Claude, читай его в начале каждой сессии и свер�
       по разделу «Дизайн», навигация, деплой на GitHub Pages. Проверить установку на телефон.
 - [x] **1. Расписание из РУЗ:** скрипт загрузки + GitHub Actions по cron +
       экран «Расписание» (лента дат, лента дня).
-- [ ] **1.5. MVP:** задания + экран «Сегодня» + экспорт/импорт JSON.
+- [x] **1.5. MVP:** задания + экран «Сегодня» + экспорт/импорт JSON.
 - [ ] **2. Предметы и конспекты:** карточки предметов, Markdown-заметки, ссылки.
 - [ ] **3. Внеучебка и неделя:** проекты, события, недельный календарь, индикатор нагрузки.
 - [ ] **4. Помощники:** чек-лист СТО САФУ, генератор записей по ГОСТ Р 7.0.100–2018.

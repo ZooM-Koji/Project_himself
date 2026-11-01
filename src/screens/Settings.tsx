@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { IconDownload, IconUpload } from '../components/Icons'
+import { downloadBackup, importBackup, lastExport } from '../lib/backup'
 import PageHead from '../components/PageHead'
 import { GROUP_NUMBER, GROUP_OID, INSTITUTE } from '../config'
 import { db } from '../lib/db'
@@ -30,6 +33,26 @@ export default function Settings() {
   const [sync, setSync] = useState<SyncResult | 'busy' | null>(null)
   const mine = s.rules.filter((r) => r.kind === 'mine')
   const hidden = s.rules.filter((r) => r.kind === 'hide')
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [backupMsg, setBackupMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const exportedAt = useLiveQuery(lastExport, [])
+
+  const doExport = async () => {
+    const d = await downloadBackup()
+    const n = d.tables.tasks.filter((t) => !t.deleted).length
+    setBackupMsg({ ok: true, text: `Файл сохранён в «Загрузки»: заданий — ${n}.` })
+  }
+  const doImport = async (file?: File) => {
+    if (!file) return
+    try {
+      const r = await importBackup(await file.text())
+      setBackupMsg({ ok: true, text: `Готово: новых записей — ${r.added}, обновлено — ${r.updated}, без изменений — ${r.skipped}.` })
+    } catch (e) {
+      setBackupMsg({ ok: false, text: (e as Error).message })
+    }
+    if (fileRef.current) fileRef.current.value = ''
+  }
 
   const refresh = async () => {
     setSync('busy')
@@ -135,11 +158,29 @@ export default function Settings() {
         </div>
 
         <div className="card">
-          <h2 className="card-title">Данные</h2>
-          <div className="kv">
-            <span>Экспорт и импорт в файл</span>
-            <span className="badge">этап 1.5</span>
+          <h2 className="card-title">Резервная копия</h2>
+          <p className="muted" style={{ marginBottom: 12 }}>
+            Все задания и выбранные группы — в один файл. Из него же можно восстановить данные или перенести их на другое
+            устройство: совпадающие записи заменяются более свежими, остальное добавляется.
+          </p>
+          <div className="sheet-actions" style={{ marginTop: 0 }}>
+            <button className="pill primary" onClick={doExport}>
+              <IconDownload size={18} /> Скачать копию
+            </button>
+            <button className="pill" onClick={() => fileRef.current?.click()}>
+              <IconUpload size={18} /> Загрузить из файла
+            </button>
+            <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => doImport(e.target.files?.[0])} />
           </div>
+          {backupMsg && <p className={`note ${backupMsg.ok ? 'note-sky' : 'note-danger'}`} style={{ marginTop: 10 }}>{backupMsg.text}</p>}
+          <div className="kv">
+            <span className="muted">Последняя копия</span>
+            <b>{fmt(exportedAt)}</b>
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 className="card-title">Синхронизация</h2>
           <div className="kv">
             <span>Синхронизация через Яндекс Диск</span>
             <span className="badge">этап 5</span>

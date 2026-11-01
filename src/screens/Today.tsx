@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Empty from '../components/Empty'
 import { IconAlert, IconCalendar, IconCheck, IconClock, IconMoon, IconSettings, IconTasks } from '../components/Icons'
 import LessonCard from '../components/LessonCard'
 import LessonSheet from '../components/LessonSheet'
 import { USER_NAME } from '../config'
 import { addDays, capitalize, formatDuration, formatIsoLong, formatLongDate, greeting, plural } from '../lib/dates'
-import { isoDate, itemTitle, toMinutes, useSchedule, type DayItem, type ScheduleView } from '../lib/schedule'
+import { isoDate, toMinutes, useSchedule, type DayItem, type ScheduleView } from '../lib/schedule'
 import { useNow } from '../lib/useNow'
+import TaskRow from '../components/TaskRow'
+import TaskEditor from '../components/TaskEditor'
+import { bucketOf, sortTasks, taskStats, useSubjects, useTasks, type Task } from '../lib/tasks'
 
 /** Ближайшая пара: сегодняшняя, которая ещё не кончилась, или первая в ближайшие 2 недели. */
 function findNext(s: ScheduleView, now: Date): { date: string; it: DayItem } | null {
@@ -56,18 +59,29 @@ export default function Today() {
   const now = useNow()
   const s = useSchedule()
   const [open, setOpen] = useState<DayItem | null>(null)
-  // Задания появятся на этапе 1.5 — пока счётчики нулевые.
-  const stats = { done: 0, inProgress: 0, overdue: 0, week: 0 }
+  const [openTask, setOpenTask] = useState<Task | null>(null)
+  const navigate = useNavigate()
+  const tasks = useTasks()
+  const subjects = useSubjects(tasks)
+  const stats = taskStats(tasks ?? [], now)
+  const soon = (tasks ?? [])
+    .filter((t) => ['overdue', 'today', 'tomorrow'].includes(bucketOf(t, now)))
+    .sort(sortTasks)
 
   const todayItems = s.day(isoDate(now)).filter((i) => i.type !== 'removed')
   const pairs = todayItems.length
 
   const tiles = [
-    { label: 'Сделано', value: stats.done, tone: 'tone-ok', icon: <IconCheck size={20} /> },
-    { label: 'В работе', value: stats.inProgress, tone: 'tone-accent', icon: <IconClock size={20} /> },
-    { label: 'Просрочено', value: stats.overdue, tone: 'tone-danger', icon: <IconAlert size={20} /> },
-    { label: 'На неделе', value: stats.week, tone: 'tone-sky', icon: <IconCalendar size={20} /> },
+    { label: 'Сделано за неделю', value: stats.doneWeek, tone: 'tone-ok', icon: <IconCheck size={20} />, to: '/tasks?filter=done' },
+    { label: 'В работе', value: stats.doing, tone: 'tone-accent', icon: <IconClock size={20} />, to: '/tasks' },
+    { label: 'Просрочено', value: stats.overdue, tone: 'tone-danger', icon: <IconAlert size={20} />, to: '/tasks?filter=overdue' },
+    { label: 'На неделе', value: stats.week, tone: 'tone-sky', icon: <IconCalendar size={20} />, to: '/tasks?filter=week' },
   ]
+
+  const summary: string[] = []
+  if (stats.today > 0) summary.push(`${stats.today} ${plural(stats.today, ['задание', 'задания', 'заданий'])} на сегодня`)
+  if (s.file && pairs > 0) summary.push(`${pairs} ${plural(pairs, ['пара', 'пары', 'пар'])}`)
+  if (stats.overdue > 0) summary.push(`${stats.overdue} просрочено`)
 
   return (
     <>
@@ -81,22 +95,16 @@ export default function Today() {
         <h1>
           {greeting(now)}, {USER_NAME}
         </h1>
-        <p className="hero-sub">
-          {!s.file
-            ? 'Расписание загружается…'
-            : pairs === 0
-              ? 'Сегодня пар нет'
-              : `Сегодня ${pairs} ${plural(pairs, ['пара', 'пары', 'пар'])}: ${todayItems.map(itemTitle)[0]}${pairs > 1 ? ' и др.' : ''}`}
-        </p>
+        <p className="hero-sub">{summary.length ? summary.join(' · ') : 'Сегодня ни пар, ни дедлайнов'}</p>
       </section>
 
       <div className="tiles">
         {tiles.map((t) => (
-          <div key={t.label} className="tile">
+          <button key={t.label} className="tile" onClick={() => navigate(t.to)}>
             <span className={`tile-icon ${t.tone}`}>{t.icon}</span>
             <span className="tile-num">{t.value}</span>
             <span className="tile-label">{t.label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -121,17 +129,27 @@ export default function Today() {
           )}
         </div>
         <div className="stack">
-          <h2 className="section-title">Задания на сегодня и завтра</h2>
-          <Empty
-            icon={<IconTasks />}
-            title="Пока пусто"
-            text="Добавлять задания с дедлайнами можно будет на этапе 1.5."
-          />
+          <h2 className="section-title">
+            Задания на сегодня и завтра
+            <Link to="/tasks" className="muted" style={{ fontWeight: 600 }}>
+              Все
+            </Link>
+          </h2>
+          {soon.length === 0 ? (
+            <Empty icon={<IconTasks />} title="Горящих дедлайнов нет" text="Новое задание — кнопка «+» или строка на экране «Задания»." />
+          ) : (
+            <div className="card task-list">
+              {soon.map((t) => (
+                <TaskRow key={t.id} task={t} now={now} onOpen={() => setOpenTask(t)} />
+              ))}
+            </div>
+          )}
           <h2 className="section-title">Вечером</h2>
           <Empty icon={<IconMoon />} title="Событий нет" text="Репетиции, студсовет и мероприятия — на этапе 3." />
         </div>
       </div>
       {open && <LessonSheet it={open} onClose={() => setOpen(null)} />}
+      {openTask && <TaskEditor task={openTask} subjects={subjects} onClose={() => setOpenTask(null)} />}
     </>
   )
 }
