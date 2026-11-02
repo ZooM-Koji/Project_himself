@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   IconBook,
   IconCalendar,
@@ -23,6 +23,16 @@ const NAV: NavItem[] = [
 
 export default function Layout() {
   const [addOpen, setAddOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Ярлык на иконке «Новое задание» открывает …/#/tasks?new=1
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('new') === '1') {
+      setAddOpen(true)
+      navigate(location.pathname, { replace: true })
+    }
+  }, [location, navigate])
   const cls = (base: string) => ({ isActive }: { isActive: boolean }) => (isActive ? `${base} active` : base)
 
   return (

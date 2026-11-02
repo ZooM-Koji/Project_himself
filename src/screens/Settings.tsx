@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { IconDownload, IconUpload } from '../components/Icons'
 import { downloadBackup, importBackup, lastExport } from '../lib/backup'
 import PageHead from '../components/PageHead'
+import CalendarCard from '../components/CalendarCard'
 import { GROUP_NUMBER, GROUP_OID, INSTITUTE } from '../config'
 import { db } from '../lib/db'
 import { removeRule, syncSchedule, useSchedule, type SyncResult } from '../lib/schedule'
@@ -130,6 +131,8 @@ export default function Settings() {
             Сайт сам скачивает расписание из РУЗ 3 раза в день (6:17, 12:17, 18:17 по Москве).
           </p>
         </div>
+
+        <CalendarCard />
 
         <div className="card">
           <h2 className="card-title">Мои потоки и подгруппы</h2>
