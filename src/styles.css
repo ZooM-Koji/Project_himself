@@ -900,6 +900,10 @@ p {
   background: var(--sky);
   color: #fff;
 }
+.chg-manual {
+  background: var(--card-soft);
+  color: var(--text-2);
+}
 .chg-removed {
   background: var(--danger);
   color: #fff;
@@ -1728,7 +1732,7 @@ button.tile:active {
   border-radius: 4px;
 }
 
-.load-heavy span {
+.load.load-heavy span {
   color: var(--danger);
 }
 

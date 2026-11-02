@@ -11,6 +11,7 @@ import Sheet from './Sheet'
 import { useProjects } from '../lib/activities'
 import { useNavigate } from 'react-router-dom'
 import { askClaude } from '../lib/askClaude'
+import { googleCalendarUrl } from '../lib/notify'
 import { subjectFacts } from '../lib/subjects'
 
 const OTHER = '__other__'
@@ -226,6 +227,11 @@ export default function TaskEditor({
           <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/gost?task=${task.id}`))}>
             Литература
           </button>
+          {task.dueDate && (
+            <a className="pill small" href={googleCalendarUrl(task) ?? undefined} target="_blank" rel="noreferrer noopener" title="Создать напоминание в Google Календаре">
+              В Google Календарь
+            </a>
+          )}
         </div>
       )}
       {askMsg && <p className="note note-sky">{askMsg}</p>}

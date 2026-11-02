@@ -7,6 +7,7 @@ import LessonCard from '../components/LessonCard'
 import LessonSheet from '../components/LessonSheet'
 import PageHead from '../components/PageHead'
 import TaskEditor from '../components/TaskEditor'
+import ManualLessonEditor from '../components/ManualLessonEditor'
 import TaskRow from '../components/TaskRow'
 import { eventEnd, useEvents, type CalEvent } from '../lib/activities'
 import { addDays, capitalize, formatIsoLong, formatMonth, fromIso, startOfWeek } from '../lib/dates'
@@ -37,6 +38,7 @@ export default function Schedule() {
   const [open, setOpen] = useState<DayItem | null>(null)
   const [openEvent, setOpenEvent] = useState<CalEvent | null>(null)
   const [openTask, setOpenTask] = useState<Task | null>(null)
+  const [addLesson, setAddLesson] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
 
   // Лента дат: с понедельника недели, где начинается расписание (или текущей), до его конца.
@@ -99,7 +101,7 @@ export default function Schedule() {
         })}
       </div>
 
-      {!s.ready ? null : !s.file && events.length === 0 ? (
+      {!s.ready ? null : !s.file && events.length === 0 && s.lessons.length === 0 ? (
         <Empty
           icon={<IconCalendar />}
           title="Расписание ещё не загружено"
@@ -120,7 +122,13 @@ export default function Schedule() {
         />
       )}
 
+      {mode === 'day' && (
+        <button className="link-btn" style={{ display: 'block', margin: '12px auto 0' }} onClick={() => setAddLesson(true)}>
+          + Добавить пару вручную на этот день
+        </button>
+      )}
       {s.file && <SourceLine fetchedAt={s.file.fetchedAt} />}
+      {addLesson && <ManualLessonEditor date={selected} onClose={() => setAddLesson(false)} />}
       {open && <LessonSheet it={open} onClose={() => setOpen(null)} />}
       {openEvent && <EventEditor event={openEvent} onClose={() => setOpenEvent(null)} />}
       {openTask && <TaskEditor task={openTask} subjects={subjects} onClose={() => setOpenTask(null)} />}

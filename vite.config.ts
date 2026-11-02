@@ -47,6 +47,8 @@ export default defineConfig({
         globIgnores: ['**/*-greek-*', '**/*-vietnamese-*'],
         // Страница возврата после входа в Яндекс — отдельная, не подменять её главной.
         navigateFallbackDenylist: [/oauth\.html/],
+        // Утренняя сводка и нажатия на уведомления (public/sw-reminders.js)
+        importScripts: ['sw-reminders.js'],
       },
     }),
   ],
