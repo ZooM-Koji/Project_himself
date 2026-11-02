@@ -45,6 +45,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Греческий и вьетнамский варианты шрифта не нужны — не кладём их в офлайн-кэш.
         globIgnores: ['**/*-greek-*', '**/*-vietnamese-*'],
+        // Страница возврата после входа в Яндекс — отдельная, не подменять её главной.
+        navigateFallbackDenylist: [/oauth\.html/],
       },
     }),
   ],

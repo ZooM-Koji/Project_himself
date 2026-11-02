@@ -196,6 +196,15 @@ class ZachetkaDB extends Dexie {
 
 export const db = new ZachetkaDB()
 
+// Правка всегда «новее» той версии, которую правят — даже если часы на устройстве отстают
+// (иначе при синхронизации запись с «будущим» временем перебила бы свежую правку).
+for (const t of [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.refs] as Table<{ updatedAt: number }, string>[]) {
+  t.hook('updating', (mods, _key, obj) => {
+    const next = (mods as { updatedAt?: unknown }).updatedAt
+    if (typeof next === 'number' && typeof obj.updatedAt === 'number' && next <= obj.updatedAt) return { updatedAt: obj.updatedAt + 1 }
+  })
+}
+
 export async function kvGet<T>(key: string): Promise<T | undefined> {
   return (await db.kv.get(key))?.value as T | undefined
 }

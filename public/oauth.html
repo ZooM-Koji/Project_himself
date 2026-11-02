@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Вход в Яндекс — Зачётка</title>
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eef0f8; color: #17153a;
+        font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      main { max-width: 360px; margin: 16px; padding: 24px; background: #fff; border-radius: 22px; box-shadow: 0 8px 24px rgba(40,30,110,.08); }
+      a { display: inline-block; margin-top: 12px; padding: 10px 18px; border-radius: 999px; background: #5b3fd9; color: #fff; text-decoration: none; font-weight: 700; }
+      @media (prefers-color-scheme: dark) { body { background: #15132b; color: #f1effc; } main { background: #221e45; } }
+    </style>
+  </head>
+  <body>
+    <main><h1 style="font-size:20px;margin:0 0 8px">Вход в Яндекс</h1><p id="msg">Секунду…</p><a href="./#/settings">Вернуться в «Зачётку»</a></main>
+    <script>
+      // Яндекс вернул нас сюда: в адресе после # лежит токен (или ошибка).
+      // Проверяем state (защита от подмены), передаём токен приложению и сразу убираем его из адреса.
+      (function () {
+        var msg = document.getElementById('msg')
+        var p = new URLSearchParams(location.hash.slice(1))
+        history.replaceState(null, '', location.pathname)
+        try {
+          var expected = localStorage.getItem('zachetka.oauthState')
+          localStorage.removeItem('zachetka.oauthState')
+          if (p.get('error')) {
+            msg.textContent = p.get('error') === 'access_denied' ? 'Вход отменён — ничего страшного.' : 'Яндекс вернул ошибку: ' + p.get('error')
+            return
+          }
+          if (!p.get('access_token') || !expected || p.get('state') !== expected) {
+            msg.textContent = 'Что-то пошло не так (вход начат не из приложения или устарел). Попробуй ещё раз из «Настроек».'
+            return
+          }
+          localStorage.setItem('zachetka.oauthToken', p.get('access_token'))
+          msg.textContent = 'Готово! Возвращаемся…'
+          location.replace('./#/settings')
+        } catch (e) {
+          msg.textContent = 'Браузер не дал сохранить вход (возможно, режим инкогнито).'
+        }
+      })()
+    </script>
+  </body>
+</html>

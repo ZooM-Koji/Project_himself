@@ -4,10 +4,12 @@ import '@fontsource-variable/manrope'
 import './styles.css'
 import { initTheme } from './lib/theme'
 import { startAutoSync } from './lib/schedule'
+import { startAutoSync as startDataSync } from './lib/sync'
 import App from './App'
 
 initTheme()
 startAutoSync()
+void startDataSync()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
