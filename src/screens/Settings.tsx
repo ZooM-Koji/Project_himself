@@ -5,6 +5,7 @@ import { IconDownload, IconUpload } from '../components/Icons'
 import { downloadBackup, importBackup, lastExport } from '../lib/backup'
 import PageHead from '../components/PageHead'
 import CalendarCard from '../components/CalendarCard'
+import SyncCard from '../components/SyncCard'
 import { GROUP_NUMBER, GROUP_OID, INSTITUTE } from '../config'
 import { db } from '../lib/db'
 import { removeRule, syncSchedule, useSchedule, type SyncResult } from '../lib/schedule'
@@ -228,13 +229,7 @@ export default function Settings() {
           </p>
         </div>
 
-        <div className="card">
-          <h2 className="card-title">Синхронизация</h2>
-          <div className="kv">
-            <span>Синхронизация через Яндекс Диск</span>
-            <span className="badge">этап 5</span>
-          </div>
-        </div>
+        <SyncCard />
 
         <p className="muted" style={{ textAlign: 'center' }}>
           Зачётка · версия {__APP_VERSION__}
