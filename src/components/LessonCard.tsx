@@ -74,7 +74,7 @@ export default function LessonCard({
     <button className={`lesson tone-${kindTone(l.kind)}${compact ? ' compact' : ''}`} style={style} onClick={onOpen}>
       <span className="lesson-top">
         <span>{time}</span>
-        <ChangeBadge item={it.item} />
+        {l.manualId ? <span className="chg chg-manual">вручную</span> : <ChangeBadge item={it.item} />}
       </span>
       <span className="lesson-title">{l.subject}</span>
       <span className="lesson-meta">{meta(l)}</span>

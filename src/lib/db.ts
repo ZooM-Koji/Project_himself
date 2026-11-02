@@ -153,6 +153,23 @@ export interface Reference {
   deleted: boolean
 }
 
+/** Пара, добавленная вручную (консультация, отработка) или из .ics-файла (запасной вариант). */
+export interface ManualLesson {
+  id: string
+  date: string // YYYY-MM-DD
+  start: string // HH:MM
+  end: string
+  subject: string
+  kind: string
+  room: string
+  teacher: string
+  notes: string
+  source: 'manual' | 'ics'
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
 class ZachetkaDB extends Dexie {
   kv!: Table<KV, string>
   scheduleRules!: Table<ScheduleRule, string>
@@ -164,6 +181,7 @@ class ZachetkaDB extends Dexie {
   projects!: Table<Project, string>
   events!: Table<CalEvent, string>
   refs!: Table<Reference, string>
+  manualLessons!: Table<ManualLesson, string>
 
   constructor() {
     super('zachetka')
@@ -191,6 +209,10 @@ class ZachetkaDB extends Dexie {
     this.version(5).stores({
       refs: 'id, taskId',
     })
+    // v6 (доделка этапа 1): пары вручную и из .ics.
+    this.version(6).stores({
+      manualLessons: 'id, date, source',
+    })
   }
 }
 
@@ -198,7 +220,7 @@ export const db = new ZachetkaDB()
 
 // Правка всегда «новее» той версии, которую правят — даже если часы на устройстве отстают
 // (иначе при синхронизации запись с «будущим» временем перебила бы свежую правку).
-for (const t of [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.refs] as Table<{ updatedAt: number }, string>[]) {
+for (const t of [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.refs, db.manualLessons] as Table<{ updatedAt: number }, string>[]) {
   t.hook('updating', (mods, _key, obj) => {
     const next = (mods as { updatedAt?: unknown }).updatedAt
     if (typeof next === 'number' && typeof obj.updatedAt === 'number' && next <= obj.updatedAt) return { updatedAt: obj.updatedAt + 1 }

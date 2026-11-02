@@ -6,6 +6,8 @@ import { downloadBackup, importBackup, lastExport } from '../lib/backup'
 import PageHead from '../components/PageHead'
 import CalendarCard from '../components/CalendarCard'
 import SyncCard from '../components/SyncCard'
+import NotifyCard from '../components/NotifyCard'
+import IcsImport from '../components/IcsImport'
 import { GROUP_NUMBER, GROUP_OID, INSTITUTE } from '../config'
 import { db } from '../lib/db'
 import { removeRule, syncSchedule, useSchedule, type SyncResult } from '../lib/schedule'
@@ -131,9 +133,12 @@ export default function Settings() {
           <p className="muted" style={{ marginTop: 10, fontSize: 13 }}>
             Сайт сам скачивает расписание из РУЗ 3 раза в день (6:17, 12:17, 18:17 по Москве).
           </p>
+          <IcsImport />
         </div>
 
         <CalendarCard />
+
+        <NotifyCard />
 
         <div className="card">
           <h2 className="card-title">Мои потоки и подгруппы</h2>

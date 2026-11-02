@@ -126,6 +126,13 @@ export function buildIcs(schedule, { groupNumber, myGroups = {} }) {
       ...(e.room || e.address ? [`LOCATION:${esc([e.room, e.address].filter(Boolean).join(', '))}`] : []),
       `DESCRIPTION:${esc(desc)}`,
       'TRANSP:OPAQUE',
+      // Напоминание за 15 минут (ICSx⁵ и большинство календарей его покажут;
+      // Google для подписок использует свои «уведомления по умолчанию» календаря)
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${esc(summary)}`,
+      'TRIGGER:-PT15M',
+      'END:VALARM',
       'END:VEVENT',
     )
   }

@@ -2,7 +2,7 @@
 // правила «моя группа» / «скрыть пару».
 import { useLiveQuery } from 'dexie-react-hooks'
 import { GROUP_NUMBER } from '../config'
-import { db, kvGet, kvSet, type ScheduleRule } from './db'
+import { db, kvGet, kvSet, type ManualLesson, type ScheduleRule } from './db'
 
 export interface RuzLesson {
   date: string // YYYY-MM-DD
@@ -15,6 +15,7 @@ export interface RuzLesson {
   room: string
   address: string
   group: string // поток/подгруппа, как в РУЗ; '' — вся группа
+  manualId?: string // пара добавлена вручную / из .ics (id в таблице manualLessons)
 }
 
 export interface ScheduleFile {
@@ -236,19 +237,21 @@ export interface ScheduleView {
 
 export function useSchedule(): ScheduleView {
   const data = useLiveQuery(async () => {
-    const [file, prev, checkedAt, rules] = await Promise.all([
+    const [file, prev, checkedAt, rules, manual] = await Promise.all([
       kvGet<ScheduleFile>(K_CURRENT),
       kvGet<ScheduleFile>(K_PREVIOUS),
       kvGet<string>(K_CHECKED),
       db.scheduleRules.filter((r) => !r.deleted).toArray(),
+      db.manualLessons.filter((m) => !m.deleted).toArray(),
     ])
-    return { file, prev, checkedAt, rules }
+    return { file, prev, checkedAt, rules, manual }
   }, [])
 
   const file = data?.file
   const rules = data?.rules ?? []
   const changes = diffSchedules(data?.prev, file)
-  const visible = applyRules(file?.lessons ?? [], rules)
+  const manual = (data?.manual ?? []).map(manualToLesson)
+  const visible = [...applyRules(file?.lessons ?? [], rules), ...manual]
   const byDate = new Map<string, RuzLesson[]>()
   for (const l of visible) byDate.set(l.date, [...(byDate.get(l.date) ?? []), l])
   const visibleChanges: Changes = { byId: changes.byId, removed: applyRules(changes.removed, rules) }
@@ -262,12 +265,27 @@ export function useSchedule(): ScheduleView {
     file,
     checkedAt: data?.checkedAt,
     rules,
-    covers: (d) => !!file && d >= file.range.from && d <= file.range.to,
+    covers: (d) => (!!file && d >= file.range.from && d <= file.range.to) || manual.some((m) => m.date === d),
     day: (d) => buildDay(d, byDate.get(d) ?? [], visibleChanges),
     changedDates,
     lessons: visible,
   }
 }
+
+/** Пара вручную → в общий вид пары. */
+export const manualToLesson = (m: ManualLesson): RuzLesson => ({
+  date: m.date,
+  num: 0,
+  start: m.start,
+  end: m.end,
+  kind: m.kind,
+  subject: m.subject,
+  teacher: m.teacher,
+  room: m.room,
+  address: '',
+  group: '',
+  manualId: m.id,
+})
 
 // ---------- время ----------
 
@@ -286,4 +304,14 @@ export function itemTitle(it: DayItem): string {
   if (it.type === 'lesson') return it.item.lesson.subject
   if (it.type === 'choice') return it.options[0].lesson.subject
   return it.lesson.subject
+}
+
+/** Пары с учётом выбора групп и скрытых — без React (для напоминаний). */
+export async function loadVisibleLessons(): Promise<RuzLesson[]> {
+  const [file, rules, manual] = await Promise.all([
+    kvGet<ScheduleFile>(K_CURRENT),
+    db.scheduleRules.filter((r) => !r.deleted).toArray(),
+    db.manualLessons.filter((m) => !m.deleted).toArray(),
+  ])
+  return [...applyRules(file?.lessons ?? [], rules), ...manual.map(manualToLesson)]
 }

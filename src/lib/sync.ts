@@ -9,7 +9,7 @@ import { mergeTables, tablesHash, type Tables } from './merge'
 import { DiskError, downloadSync, forgetToken, getToken, remoteModified, takeLoginHandoff, uploadSync } from './yadisk'
 
 /** Таблицы, которые синхронизируются (как в резервной копии, без файлов). */
-const SYNCED = ['tasks', 'scheduleRules', 'subjects', 'notes', 'quickLinks', 'projects', 'events', 'refs'] as const
+const SYNCED = ['tasks', 'scheduleRules', 'subjects', 'notes', 'quickLinks', 'projects', 'events', 'refs', 'manualLessons'] as const
 
 export interface SyncStatus {
   at: string // когда закончили

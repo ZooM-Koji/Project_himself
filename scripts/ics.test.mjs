@@ -43,6 +43,7 @@ test('формат .ics: CRLF, московское время, экраниро
   assert.equal(ics.match(/BEGIN:VEVENT/g).length, 4)
   assert.ok(ics.includes('DTSTART;TZID=Europe/Moscow:20261105T082000'))
   assert.ok(ics.includes('SUMMARY:Высшая математика (практика)'))
+  assert.equal(ics.match(/TRIGGER:-PT15M/g).length, 4) // напоминание за 15 минут у каждой пары
   assert.ok(ics.includes('LOCATION:ауд. 107\\, наб. Северной Двины\\, 54'))
   for (const line of ics.split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75, `длинная строка: ${line}`)
 })

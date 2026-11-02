@@ -13,6 +13,7 @@ import {
 import { ChangeBadge, shortKind } from './LessonCard'
 import Sheet from './Sheet'
 import TaskEditor from './TaskEditor'
+import ManualLessonEditor from './ManualLessonEditor'
 import { useSubjects, useTasks } from '../lib/tasks'
 
 const FIELD_NAMES: Partial<Record<keyof RuzLesson, string>> = {
@@ -67,6 +68,7 @@ function ChangeNote({ s }: { s: ShownLesson }) {
 export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () => void }) {
   const [busy, setBusy] = useState(false)
   const [newTask, setNewTask] = useState(false)
+  const [editManual, setEditManual] = useState(false)
   const navigate = useNavigate()
   const subjects = useSubjects(useTasks())
   const act = (fn: () => Promise<void>) => async () => {
@@ -109,6 +111,7 @@ export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () 
   }
 
   const s = it.item
+  if (editManual && s.lesson.manualId) return <ManualLessonEditor id={s.lesson.manualId} onClose={onClose} />
   if (newTask) return <TaskEditor draft={{ title: '', subject: s.lesson.subject }} subjects={subjects} onClose={onClose} />
   return (
     <Sheet title={s.lesson.subject} onClose={onClose}>
@@ -121,14 +124,21 @@ export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () 
         <button className="pill" onClick={() => (onClose(), navigate(`/study/s/${encodeURIComponent(s.lesson.subject)}`))}>
           Карточка предмета
         </button>
+        {s.lesson.manualId && (
+          <button className="pill" onClick={() => setEditManual(true)}>
+            Изменить / удалить
+          </button>
+        )}
         {!isWholeGroup(s.lesson) && (
           <button className="pill" disabled={busy} onClick={act(() => chooseMyGroup(s.lesson))}>
             Это моя группа
           </button>
         )}
-        <button className="pill" disabled={busy} onClick={act(() => hideLesson(s.lesson))}>
-          Скрыть эту пару
-        </button>
+        {!s.lesson.manualId && (
+          <button className="pill" disabled={busy} onClick={act(() => hideLesson(s.lesson))}>
+            Скрыть эту пару
+          </button>
+        )}
       </div>
     </Sheet>
   )
