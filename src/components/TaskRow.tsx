@@ -1,6 +1,7 @@
 import { formatDue } from '../lib/dates'
 import { bucketOf, cycleStatus, STATUS_LABEL, type Task } from '../lib/tasks'
 import { IconLink, IconNote } from './Icons'
+import { useProjectName } from '../lib/activities'
 
 function StatusIcon({ status }: { status: Task['status'] }) {
   return (
@@ -14,6 +15,7 @@ function StatusIcon({ status }: { status: Task['status'] }) {
 
 export default function TaskRow({ task, now, onOpen }: { task: Task; now: Date; onOpen: () => void }) {
   const overdue = bucketOf(task, now) === 'overdue'
+  const project = useProjectName(task.projectId)
   return (
     <div className={`task-row${task.status === 'done' ? ' done' : ''}`}>
       <button
@@ -31,6 +33,7 @@ export default function TaskRow({ task, now, onOpen }: { task: Task; now: Date; 
             <span className={overdue ? 'due overdue' : 'due'}>{formatDue(task.dueDate, task.dueTime, now)}</span>
           )}
           {task.subject && <span className="task-subject">{task.subject}</span>}
+          {project && <span className="task-subject task-project">{project}</span>}
           {task.status === 'doing' && <span className="badge">в работе</span>}
           {task.notes && <IconNote size={14} />}
           {task.links.length > 0 && <IconLink size={14} />}

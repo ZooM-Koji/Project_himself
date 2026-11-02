@@ -10,6 +10,7 @@ import {
   IconTasks,
 } from './Icons'
 import QuickAddSheet from './QuickAddSheet'
+import { ProjectNamesContext, useProjects } from '../lib/activities'
 
 type NavItem = { to: string; label: string; short: string; icon: ReactNode }
 
@@ -23,6 +24,8 @@ const NAV: NavItem[] = [
 
 export default function Layout() {
   const [addOpen, setAddOpen] = useState(false)
+  const projects = useProjects()
+  const projectNames = new Map((projects ?? []).map((p) => [p.id, p.title]))
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -36,6 +39,7 @@ export default function Layout() {
   const cls = (base: string) => ({ isActive }: { isActive: boolean }) => (isActive ? `${base} active` : base)
 
   return (
+    <ProjectNamesContext.Provider value={projectNames}>
     <div className="app">
       {/* Компьютер: боковое меню */}
       <aside className="sidebar">
@@ -78,5 +82,6 @@ export default function Layout() {
 
       {addOpen && <QuickAddSheet onClose={() => setAddOpen(false)} />}
     </div>
+    </ProjectNamesContext.Provider>
   )
 }

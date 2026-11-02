@@ -10,6 +10,7 @@ import SubjectPage from './screens/SubjectPage'
 import NoteEdit from './screens/NoteEdit'
 import NotesList from './screens/NotesList'
 import NewNote from './screens/NewNote'
+import ProjectPage from './screens/ProjectPage'
 
 // HashRouter (адреса вида …/#/tasks): GitHub Pages не умеет отдавать
 // index.html для любых путей, а с «#» обновление страницы ничего не ломает.
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="study/notes/new" element={<NewNote />} />
           <Route path="study/notes/:id" element={<NoteEdit />} />
           <Route path="activities" element={<Activities />} />
+          <Route path="activities/p/:id" element={<ProjectPage />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
