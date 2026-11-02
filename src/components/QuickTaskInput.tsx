@@ -17,7 +17,9 @@ export default function QuickTaskInput({
   onAdded,
   onMore,
   autoFocus,
+  defaultSubject,
 }: {
+  defaultSubject?: string
   subjects: string[]
   onAdded?: (id: string) => void
   onMore?: (draft: TaskDraft) => void
@@ -27,6 +29,12 @@ export default function QuickTaskInput({
   const { lessons } = useSchedule()
   const now = new Date()
   const r = parseQuick(text, now, subjects, lessons)
+  if (!r.subject && defaultSubject) {
+    // на странице предмета: предмет известен заранее, «к следующей паре» — тоже по нему
+    const again = parseQuick(`${text} ${defaultSubject}`, now, [defaultSubject], lessons)
+    r.subject = defaultSubject
+    if (r.pair && again.pair) (r.pair = again.pair), (r.dueDate = again.dueDate), (r.dueTime = again.dueTime)
+  }
   const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime }
 
   const submit = async (e: React.FormEvent) => {

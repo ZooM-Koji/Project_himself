@@ -151,3 +151,35 @@ export const IconUpload = (p: P) => (
     <path d="M12 16V5M7 10l5-5 5 5M5 20h14" />
   </Base>
 )
+
+export const IconCamera = (p: P) => (
+  <Base {...p}>
+    <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Base>
+)
+
+export const IconPaperclip = (p: P) => (
+  <Base {...p}>
+    <path d="m20 11.5-8.2 8.2a5 5 0 0 1-7-7L13 4.5a3.3 3.3 0 0 1 4.7 4.7l-8.2 8.2a1.7 1.7 0 0 1-2.4-2.4l7.6-7.5" />
+  </Base>
+)
+
+export const IconBack = (p: P) => (
+  <Base {...p}>
+    <path d="m15 6-6 6 6 6" />
+  </Base>
+)
+
+export const IconExternal = (p: P) => (
+  <Base {...p}>
+    <path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" />
+  </Base>
+)
+
+export const IconEdit = (p: P) => (
+  <Base {...p}>
+    <path d="M4 20h4L19 9l-4-4L4 16z" />
+    <path d="m13.5 6.5 4 4" />
+  </Base>
+)

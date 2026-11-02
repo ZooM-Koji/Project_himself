@@ -3,26 +3,16 @@ import { addDays, formatDue } from '../lib/dates'
 import { isoDate, useSchedule } from '../lib/schedule'
 import { findNextPair } from '../lib/quickParse'
 import { addTask, deleteTask, STATUS_LABEL, updateTask, type Task, type TaskDraft, type TaskStatus } from '../lib/tasks'
-import type { TaskLink } from '../lib/db'
-import { IconLink, IconTrash } from './Icons'
+import { db, type TaskLink } from '../lib/db'
+import { IconTrash } from './Icons'
+import FilesField from './FilesField'
+import LinksField from './LinksField'
 import Sheet from './Sheet'
 
 const OTHER = '__other__'
 
 function nextWeekday(now: Date, wd: number) {
   return addDays(now, (wd - now.getDay() + 7) % 7 || 7)
-}
-
-/** Нормализуем ссылку: «e.lanbook.com/…» → «https://e.lanbook.com/…» */
-function normUrl(s: string): string | null {
-  const v = s.trim()
-  if (!v) return null
-  const withScheme = /^[a-z]+:\/\//i.test(v) ? v : `https://${v}`
-  try {
-    return new URL(withScheme).href
-  } catch {
-    return null
-  }
 }
 
 export default function TaskEditor({
@@ -45,8 +35,9 @@ export default function TaskEditor({
   const [status, setStatus] = useState<TaskStatus>(init.status ?? 'todo')
   const [notes, setNotes] = useState(init.notes ?? '')
   const [links, setLinks] = useState<TaskLink[]>(init.links ?? [])
-  const [linkInput, setLinkInput] = useState('')
-  const [linkError, setLinkError] = useState(false)
+  const [pendingLink, setPendingLink] = useState<string | null>(null)
+  // У нового задания id создаём сразу — чтобы к нему можно было прикрепить фото до сохранения.
+  const [id] = useState(() => task?.id ?? crypto.randomUUID())
 
   const now = new Date()
   const { lessons } = useSchedule()
@@ -58,16 +49,14 @@ export default function TaskEditor({
     ['Через неделю', isoDate(addDays(now, 7))],
   ]
 
-  const addLink = () => {
-    const url = normUrl(linkInput)
-    if (!url) return setLinkError(true)
-    setLinks([...links, { url }])
-    setLinkInput('')
-    setLinkError(false)
+  /** Закрыли новое задание без сохранения — убираем уже прикреплённые к нему файлы. */
+  const cancel = async () => {
+    if (!task) await db.files.where({ ownerType: 'task', ownerId: id }).delete()
+    onClose()
   }
 
   const save = async () => {
-    const pending = normUrl(linkInput) // не забыть ссылку, которую ввели, но не нажали «+»
+    const pending = pendingLink // не забыть ссылку, которую ввели, но не нажали «Добавить»
     const data = {
       title: title.trim(),
       subject: subject.trim(),
@@ -79,7 +68,7 @@ export default function TaskEditor({
     }
     if (!data.title) return
     if (task) await updateTask(task.id, data)
-    else await addTask(data)
+    else await addTask({ ...data, id })
     onClose()
   }
 
@@ -91,7 +80,7 @@ export default function TaskEditor({
   }
 
   return (
-    <Sheet title={task ? 'Задание' : 'Новое задание'} onClose={onClose}>
+    <Sheet title={task ? 'Задание' : 'Новое задание'} onClose={cancel}>
       <div className="form">
         <label className="field">
           <span>Что сделать</span>
@@ -178,31 +167,12 @@ export default function TaskEditor({
 
         <div className="field">
           <span>Ссылки</span>
-          {links.map((l, i) => (
-            <div key={i} className="link-row">
-              <IconLink size={16} />
-              <a href={l.url} target="_blank" rel="noreferrer">
-                {l.url.replace(/^https?:\/\//, '')}
-              </a>
-              <button type="button" aria-label="Убрать ссылку" onClick={() => setLinks(links.filter((_, j) => j !== i))}>
-                ✕
-              </button>
-            </div>
-          ))}
-          <div className="quick-row">
-            <input
-              className="input"
-              value={linkInput}
-              inputMode="url"
-              onChange={(e) => (setLinkInput(e.target.value), setLinkError(false))}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())}
-              placeholder="e.lanbook.com/book/…"
-            />
-            <button type="button" className="pill small" onClick={addLink}>
-              Добавить
-            </button>
-          </div>
-          {linkError && <p className="muted" style={{ color: 'var(--danger)' }}>Не похоже на ссылку</p>}
+          <LinksField links={links} onChange={setLinks} onPendingChange={setPendingLink} />
+        </div>
+
+        <div className="field">
+          <span>Файлы и фото</span>
+          <FilesField ownerType="task" ownerId={id} />
         </div>
       </div>
 
