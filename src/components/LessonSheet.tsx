@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { formatIsoLong } from '../lib/dates'
 import {
   chooseMyGroup,
@@ -66,6 +67,7 @@ function ChangeNote({ s }: { s: ShownLesson }) {
 export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () => void }) {
   const [busy, setBusy] = useState(false)
   const [newTask, setNewTask] = useState(false)
+  const navigate = useNavigate()
   const subjects = useSubjects(useTasks())
   const act = (fn: () => Promise<void>) => async () => {
     setBusy(true)
@@ -115,6 +117,9 @@ export default function LessonSheet({ it, onClose }: { it: DayItem; onClose: () 
       <div className="sheet-actions">
         <button className="pill primary" onClick={() => setNewTask(true)}>
           + Задание по предмету
+        </button>
+        <button className="pill" onClick={() => (onClose(), navigate(`/study/s/${encodeURIComponent(s.lesson.subject)}`))}>
+          Карточка предмета
         </button>
         {!isWholeGroup(s.lesson) && (
           <button className="pill" disabled={busy} onClick={act(() => chooseMyGroup(s.lesson))}>

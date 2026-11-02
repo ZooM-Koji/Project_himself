@@ -2,8 +2,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Task, type TaskStatus } from './db'
 import { addDays, startOfWeek } from './dates'
-import { isoDate, type ScheduleFile } from './schedule'
-import { kvGet } from './db'
+import { isoDate } from './schedule'
+import { useAllSubjects } from './useAllSubjects'
 
 export type { Task, TaskStatus }
 
@@ -15,16 +15,16 @@ export const STATUS_LABEL: Record<TaskStatus, string> = {
 
 const NEXT_STATUS: Record<TaskStatus, TaskStatus> = { todo: 'doing', doing: 'done', done: 'todo' }
 
-export type TaskDraft = Pick<Task, 'title' | 'subject'> & Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>>
+export type TaskDraft = Pick<Task, 'title' | 'subject'> & Partial<Omit<Task, 'createdAt' | 'updatedAt' | 'deleted'>>
 
 export async function addTask(d: TaskDraft): Promise<string> {
   const now = Date.now()
   const task: Task = {
-    id: crypto.randomUUID(),
     status: 'todo',
     notes: '',
     links: [],
     ...d,
+    id: d.id ?? crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
     deleted: false,
@@ -47,22 +47,19 @@ export function cycleStatus(t: Task) {
   return updateTask(t.id, { status: NEXT_STATUS[t.status] })
 }
 
-/** Мягкое удаление: запись остаётся с deleted=true (нужно для синхронизации). */
-export function deleteTask(id: string) {
-  return updateTask(id, { deleted: true })
+/** Мягкое удаление: запись остаётся с deleted=true (нужно для синхронизации). Файлы удаляем сразу. */
+export async function deleteTask(id: string) {
+  await updateTask(id, { deleted: true })
+  await db.files.where({ ownerType: 'task', ownerId: id }).delete()
 }
 
 export function useTasks(): Task[] | undefined {
   return useLiveQuery(() => db.tasks.filter((t) => !t.deleted).toArray(), [])
 }
 
-/** Предметы для выбора: из расписания + те, что уже встречаются в заданиях. */
-export function useSubjects(tasks: Task[] | undefined): string[] {
-  const file = useLiveQuery(() => kvGet<ScheduleFile>('schedule.current'), [])
-  const set = new Set<string>()
-  for (const l of file?.lessons ?? []) set.add(l.subject)
-  for (const t of tasks ?? []) if (t.subject) set.add(t.subject)
-  return [...set].sort((a, b) => a.localeCompare(b, 'ru'))
+/** Предметы для выбора (расписание + задания + конспекты + добавленные вручную). */
+export function useSubjects(_tasks?: Task[]): string[] {
+  return useAllSubjects()
 }
 
 // ---------- группировка ----------

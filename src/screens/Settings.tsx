@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { formatSize } from '../lib/files'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { IconDownload, IconUpload } from '../components/Icons'
 import { downloadBackup, importBackup, lastExport } from '../lib/backup'
@@ -37,11 +38,31 @@ export default function Settings() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [backupMsg, setBackupMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const exportedAt = useLiveQuery(lastExport, [])
+  const filesInfo = useLiveQuery(async () => {
+    const all = await db.files.toArray()
+    return { count: all.length, size: all.reduce((s, f) => s + f.size, 0) }
+  }, [])
+  const [usage, setUsage] = useState<{ used: number; persisted: boolean } | null>(null)
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const est = await navigator.storage?.estimate?.()
+        const persisted = (await navigator.storage?.persisted?.()) ?? false
+        if (est) setUsage({ used: est.usage ?? 0, persisted })
+      } catch {
+        /* браузер не умеет — просто не показываем */
+      }
+    })()
+  }, [filesInfo?.count])
 
-  const doExport = async () => {
-    const d = await downloadBackup()
+  const doExport = async (withFiles: boolean) => {
+    const { data: d, size } = await downloadBackup(withFiles)
     const n = d.tables.tasks.filter((t) => !t.deleted).length
-    setBackupMsg({ ok: true, text: `Файл сохранён в «Загрузки»: заданий — ${n}.` })
+    const nn = (d.tables.notes ?? []).filter((t) => !t.deleted).length
+    setBackupMsg({
+      ok: true,
+      text: `Файл (${formatSize(size)}) сохранён в «Загрузки»: заданий — ${n}, конспектов — ${nn}${withFiles ? `, файлов — ${d.tables.files?.length ?? 0}` : ''}.`,
+    })
   }
   const doImport = async (file?: File) => {
     if (!file) return
@@ -164,9 +185,14 @@ export default function Settings() {
             устройство: совпадающие записи заменяются более свежими, остальное добавляется.
           </p>
           <div className="sheet-actions" style={{ marginTop: 0 }}>
-            <button className="pill primary" onClick={doExport}>
+            <button className="pill primary" onClick={() => doExport(false)}>
               <IconDownload size={18} /> Скачать копию
             </button>
+            {!!filesInfo?.count && (
+              <button className="pill" onClick={() => doExport(true)}>
+                <IconDownload size={18} /> С файлами ({formatSize(filesInfo.size)})
+              </button>
+            )}
             <button className="pill" onClick={() => fileRef.current?.click()}>
               <IconUpload size={18} /> Загрузить из файла
             </button>
@@ -177,6 +203,26 @@ export default function Settings() {
             <span className="muted">Последняя копия</span>
             <b>{fmt(exportedAt)}</b>
           </div>
+          {!!filesInfo?.count && (
+            <div className="kv">
+              <span className="muted">Файлы и фото</span>
+              <b>
+                {filesInfo.count} шт., {formatSize(filesInfo.size)}
+              </b>
+            </div>
+          )}
+          {usage && (
+            <div className="kv">
+              <span className="muted">Занято на устройстве</span>
+              <b>
+                {formatSize(usage.used)}
+                {usage.persisted ? ' · защищено от очистки' : ''}
+              </b>
+            </div>
+          )}
+          <p className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+            Обычная копия — без файлов (она маленькая). Фото и документы — только в копии «с файлами».
+          </p>
         </div>
 
         <div className="card">
