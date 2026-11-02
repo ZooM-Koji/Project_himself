@@ -9,6 +9,10 @@ import { addDays, capitalize, formatDuration, formatIsoLong, formatLongDate, gre
 import { isoDate, toMinutes, useSchedule, type DayItem, type ScheduleView } from '../lib/schedule'
 import { useNow } from '../lib/useNow'
 import TaskRow from '../components/TaskRow'
+import TipsCard from '../components/TipsCard'
+import EventCard from '../components/EventCard'
+import EventEditor from '../components/EventEditor'
+import { useEvents, type CalEvent } from '../lib/activities'
 import TaskEditor from '../components/TaskEditor'
 import { bucketOf, sortTasks, taskStats, useSubjects, useTasks, type Task } from '../lib/tasks'
 
@@ -60,6 +64,10 @@ export default function Today() {
   const s = useSchedule()
   const [open, setOpen] = useState<DayItem | null>(null)
   const [openTask, setOpenTask] = useState<Task | null>(null)
+  const [openEvent, setOpenEvent] = useState<CalEvent | null>(null)
+  const events = useEvents()
+  const tomorrowIso = isoDate(addDays(now, 1))
+  const soonEvents = events.filter((e) => e.date === isoDate(now) || e.date === tomorrowIso)
   const navigate = useNavigate()
   const tasks = useTasks()
   const subjects = useSubjects(tasks)
@@ -82,6 +90,8 @@ export default function Today() {
   if (stats.today > 0) summary.push(`${stats.today} ${plural(stats.today, ['задание', 'задания', 'заданий'])} на сегодня`)
   if (s.file && pairs > 0) summary.push(`${pairs} ${plural(pairs, ['пара', 'пары', 'пар'])}`)
   if (stats.overdue > 0) summary.push(`${stats.overdue} просрочено`)
+  const todayEvents = soonEvents.filter((e) => e.date === isoDate(now)).length
+  if (todayEvents > 0) summary.push(`${todayEvents} ${plural(todayEvents, ['событие', 'события', 'событий'])}`)
 
   return (
     <>
@@ -106,6 +116,10 @@ export default function Today() {
             <span className="tile-label">{t.label}</span>
           </button>
         ))}
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <TipsCard now={now} />
       </div>
 
       <div className="today-grid">
@@ -144,11 +158,30 @@ export default function Today() {
               ))}
             </div>
           )}
-          <h2 className="section-title">Вечером</h2>
-          <Empty icon={<IconMoon />} title="Событий нет" text="Репетиции, студсовет и мероприятия — на этапе 3." />
+          <h2 className="section-title">
+            События
+            <Link to="/activities" className="muted" style={{ fontWeight: 600 }}>
+              Все
+            </Link>
+          </h2>
+          {soonEvents.length === 0 ? (
+            <Empty icon={<IconMoon />} title="Сегодня и завтра событий нет" text="Репетиции, студсовет, выступления — добавь в «Активностях» или кнопкой «+»." />
+          ) : (
+            <div className="card stack" style={{ gap: 8 }}>
+              {soonEvents.map((e) => (
+                <div key={e.id}>
+                  <div className="muted" style={{ fontSize: 13, fontWeight: 700, margin: '2px 0 4px' }}>
+                    {e.date === tomorrowIso ? 'Завтра' : 'Сегодня'}
+                  </div>
+                  <EventCard e={e} onOpen={() => setOpenEvent(e)} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       {open && <LessonSheet it={open} onClose={() => setOpen(null)} />}
+      {openEvent && <EventEditor event={openEvent} onClose={() => setOpenEvent(null)} />}
       {openTask && <TaskEditor task={openTask} subjects={subjects} onClose={() => setOpenTask(null)} />}
     </>
   )

@@ -2,7 +2,7 @@
 // При импорте записи сливаются по updatedAt: остаётся более свежая версия
 // (так же будет работать синхронизация через Яндекс Диск на этапе 5).
 // Файлы и фото — только в «копии с файлами» (внутри JSON в base64), обычная копия лёгкая.
-import { db, kvGet, kvSet, type Note, type QuickLink, type ScheduleRule, type StoredFile, type Subject, type Task } from './db'
+import { db, kvGet, kvSet, type CalEvent, type Note, type Project, type QuickLink, type ScheduleRule, type StoredFile, type Subject, type Task } from './db'
 import { isoDate } from './schedule'
 
 export const BACKUP_APP = 'zachetka'
@@ -20,6 +20,8 @@ export interface Backup {
     subjects?: Subject[] // с этапа 2
     notes?: Note[]
     quickLinks?: QuickLink[]
+    projects?: Project[] // с этапа 3
+    events?: CalEvent[]
     files?: FileRecord[] // только в копии с файлами
   }
 }
@@ -46,6 +48,8 @@ export async function makeBackup(withFiles = false): Promise<Backup> {
     subjects: await db.subjects.toArray(),
     notes: await db.notes.toArray(),
     quickLinks: await db.quickLinks.toArray(),
+    projects: await db.projects.toArray(),
+    events: await db.events.toArray(),
   }
   if (withFiles) {
     tables.files = []
@@ -104,6 +108,8 @@ export async function importBackup(text: string): Promise<ImportResult> {
     [db.subjects, t.subjects ?? []],
     [db.notes, t.notes ?? []],
     [db.quickLinks, t.quickLinks ?? []],
+    [db.projects, t.projects ?? []],
+    [db.events, t.events ?? []],
   ] as const
   for (const [, rows] of parts) if (!isRecArray(rows)) throw new Error('Файл повреждён: нет списка записей.')
   const files = t.files ?? []
@@ -120,7 +126,7 @@ export async function importBackup(text: string): Promise<ImportResult> {
       res.updated++
     } else res.skipped++
   }
-  await db.transaction('rw', [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.files], async () => {
+  await db.transaction('rw', [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.files], async () => {
     for (const [table, rows] of parts) for (const row of rows as Rec[]) await merge(table, row)
     for (const f of files as unknown as FileRecord[]) {
       const { data: b64, ...meta } = f

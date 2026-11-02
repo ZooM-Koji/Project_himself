@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatDue } from '../lib/dates'
 import { parseQuick } from '../lib/quickParse'
 import { useSchedule } from '../lib/schedule'
+import { useProjectName } from '../lib/activities'
 import { shortKind } from './LessonCard'
 import { addTask, type TaskDraft } from '../lib/tasks'
 import { IconSend } from './Icons'
@@ -18,8 +19,11 @@ export default function QuickTaskInput({
   onMore,
   autoFocus,
   defaultSubject,
+  projectId,
 }: {
   defaultSubject?: string
+  /** На странице проекта: задача привязывается к проекту, предмет не угадываем. */
+  projectId?: string
   subjects: string[]
   onAdded?: (id: string) => void
   onMore?: (draft: TaskDraft) => void
@@ -27,6 +31,7 @@ export default function QuickTaskInput({
 }) {
   const [text, setText] = useState('')
   const { lessons } = useSchedule()
+  const projectName = useProjectName(projectId)
   const now = new Date()
   const r = parseQuick(text, now, subjects, lessons)
   if (!r.subject && defaultSubject) {
@@ -35,7 +40,8 @@ export default function QuickTaskInput({
     r.subject = defaultSubject
     if (r.pair && again.pair) (r.pair = again.pair), (r.dueDate = again.dueDate), (r.dueTime = again.dueTime)
   }
-  const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime }
+  if (projectId) r.subject = undefined
+  const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime, ...(projectId ? { projectId } : {}) }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,6 +80,7 @@ export default function QuickTaskInput({
             </span>
           )}
           {r.subject && <span className="chip chip-sky">{r.subject}</span>}
+          {projectName && <span className="chip chip-pink">{projectName}</span>}
           {r.pair?.problem === 'no-subject' && (
             <span className="quick-hint">Не понял, к паре по какому предмету — допиши, например «…по истории».</span>
           )}

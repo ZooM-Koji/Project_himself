@@ -110,6 +110,37 @@ export interface QuickLink {
   deleted: boolean
 }
 
+export type ProjectKind = 'council' | 'school' | 'event' | 'rehearsal' | 'other'
+
+/** Проект внеучебки: студсовет, «Школа актива», мероприятие, репетиции… */
+export interface Project {
+  id: string
+  title: string
+  kind: ProjectKind
+  color?: string // ключ из SUBJECT_COLORS
+  notes: string // Markdown
+  archived?: boolean
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
+/** Событие: репетиция, выступление, мастер-класс, собрание… Может быть без проекта. */
+export interface CalEvent {
+  id: string
+  projectId?: string
+  title: string
+  date: string // YYYY-MM-DD
+  start: string // HH:MM
+  end?: string // HH:MM; нет — считаем 1 час
+  place: string
+  notes: string
+  seriesId?: string // для повторов «каждую неделю»: все события серии
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
 class ZachetkaDB extends Dexie {
   kv!: Table<KV, string>
   scheduleRules!: Table<ScheduleRule, string>
@@ -118,6 +149,8 @@ class ZachetkaDB extends Dexie {
   notes!: Table<Note, string>
   files!: Table<StoredFile, string>
   quickLinks!: Table<QuickLink, string>
+  projects!: Table<Project, string>
+  events!: Table<CalEvent, string>
 
   constructor() {
     super('zachetka')
@@ -135,6 +168,11 @@ class ZachetkaDB extends Dexie {
       notes: 'id, subject, updatedAt',
       files: 'id, [ownerType+ownerId]',
       quickLinks: 'id, order',
+    })
+    // v4 (этап 3): внеучебка — проекты и события. Только новые таблицы.
+    this.version(4).stores({
+      projects: 'id',
+      events: 'id, date, projectId, seriesId',
     })
   }
 }

@@ -8,6 +8,7 @@ import { IconTrash } from './Icons'
 import FilesField from './FilesField'
 import LinksField from './LinksField'
 import Sheet from './Sheet'
+import { useProjects } from '../lib/activities'
 
 const OTHER = '__other__'
 
@@ -33,6 +34,8 @@ export default function TaskEditor({
   const [dueDate, setDueDate] = useState(init.dueDate ?? '')
   const [dueTime, setDueTime] = useState(init.dueTime ?? '')
   const [status, setStatus] = useState<TaskStatus>(init.status ?? 'todo')
+  const [projectId, setProjectId] = useState(init.projectId ?? '')
+  const projects = useProjects() ?? []
   const [notes, setNotes] = useState(init.notes ?? '')
   const [links, setLinks] = useState<TaskLink[]>(init.links ?? [])
   const [pendingLink, setPendingLink] = useState<string | null>(null)
@@ -63,6 +66,7 @@ export default function TaskEditor({
       dueDate: dueDate || undefined,
       dueTime: dueDate && dueTime ? dueTime : undefined,
       status,
+      projectId: projectId || undefined,
       notes: notes.trim(),
       links: pending ? [...links, { url: pending }] : links,
     }
@@ -112,6 +116,20 @@ export default function TaskEditor({
             </select>
           )}
         </label>
+
+        {projects.length > 0 && (
+          <label className="field">
+            <span>Проект (внеучебка)</span>
+            <select className="input" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+              <option value="">— нет —</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <div className="field">
           <span>Срок</span>
