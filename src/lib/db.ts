@@ -49,6 +49,7 @@ export interface Task {
   notes: string
   links: TaskLink[]
   doneAt?: number // когда отмечено «сдано»
+  stoChecks?: string[] // отмеченные пункты чек-листа СТО (этап 4)
   createdAt: number
   updatedAt: number
   deleted: boolean
@@ -141,6 +142,17 @@ export interface CalEvent {
   deleted: boolean
 }
 
+/** Запись списка литературы (ГОСТ Р 7.0.100–2018). taskId — для какой работы ('' — общий список). */
+export interface Reference {
+  id: string
+  taskId: string
+  text: string // готовая запись
+  data: Record<string, unknown> // поля формы — чтобы можно было поправить
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
 class ZachetkaDB extends Dexie {
   kv!: Table<KV, string>
   scheduleRules!: Table<ScheduleRule, string>
@@ -151,6 +163,7 @@ class ZachetkaDB extends Dexie {
   quickLinks!: Table<QuickLink, string>
   projects!: Table<Project, string>
   events!: Table<CalEvent, string>
+  refs!: Table<Reference, string>
 
   constructor() {
     super('zachetka')
@@ -173,6 +186,10 @@ class ZachetkaDB extends Dexie {
     this.version(4).stores({
       projects: 'id',
       events: 'id, date, projectId, seriesId',
+    })
+    // v5 (этап 4): список литературы. Новое поле Task.stoChecks индекса не требует.
+    this.version(5).stores({
+      refs: 'id, taskId',
     })
   }
 }
