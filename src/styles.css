@@ -1614,3 +1614,23 @@ button.tile:active {
   display: grid;
   place-items: center;
 }
+
+/* ===== Инструкция в настройках ===== */
+.howto {
+  margin-top: 12px;
+}
+
+.howto summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--accent-ink);
+  padding: 6px 0;
+}
+
+.howto ol {
+  padding-left: 20px;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

@@ -33,6 +33,12 @@ export default defineConfig({
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
+        // Долгое нажатие на иконку приложения → быстрые действия
+        shortcuts: [
+          { name: 'Расписание', short_name: 'Пары', url: `${BASE}#/schedule`, icons: [{ src: 'shortcut-schedule.png', sizes: '96x96', type: 'image/png' }] },
+          { name: 'Новое задание', short_name: 'Задание', url: `${BASE}#/tasks?new=1`, icons: [{ src: 'shortcut-task.png', sizes: '96x96', type: 'image/png' }] },
+          { name: 'Новый конспект', short_name: 'Конспект', url: `${BASE}#/study/notes/new`, icons: [{ src: 'shortcut-note.png', sizes: '96x96', type: 'image/png' }] },
+        ],
       },
       workbox: {
         // Кэшируем всё приложение целиком, чтобы оно открывалось без интернета.
