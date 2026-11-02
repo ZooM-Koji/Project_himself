@@ -1815,3 +1815,103 @@ button.tile:active {
   padding: 0 4px;
   flex-shrink: 0;
 }
+
+/* ===== Помощники (СТО, ГОСТ, Claude) ===== */
+.helpers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  cursor: pointer;
+}
+
+.check-row + .check-row {
+  border-top: 1px solid var(--line);
+}
+
+.check-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.check-row .cbx {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--text-2);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.check-row input:focus-visible + .cbx {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.check-row.on .cbx,
+.check-row input:checked + .cbx {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.check-row.on b {
+  color: var(--text-2);
+}
+
+.check-hint {
+  display: block;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.gost-out p:first-child {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.gost-list {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gost-list li {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.gost-list li span {
+  cursor: pointer;
+}
+
+.gost-list li button {
+  color: var(--text-2);
+  margin-left: 6px;
+  vertical-align: -3px;
+}

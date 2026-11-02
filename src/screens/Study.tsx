@@ -145,17 +145,17 @@ export default function Study() {
       </h2>
       <div className="card">
         {[
-          { title: 'Оформление по СТО САФУ', text: 'Чек-лист: поля, шрифт, интервалы, подписи', icon: <IconFile /> },
-          { title: 'Список литературы по ГОСТ', text: 'Генератор записей по ГОСТ Р 7.0.100–2018', icon: <IconQuote /> },
+          { to: '/study/sto', title: 'Оформление по СТО САФУ', text: 'Чек-лист: поля, шрифт, интервалы, подписи, раздел об ИИ', icon: <IconFile /> },
+          { to: '/study/gost', title: 'Список литературы по ГОСТ', text: 'Книга, статья, сайт, ЭБС — готовая запись и список', icon: <IconQuote /> },
         ].map((i) => (
-          <div key={i.title} className="row-link" style={{ opacity: 0.7 }}>
+          <Link key={i.title} to={i.to} className="row-link">
             <span className="row-icon">{i.icon}</span>
             <span className="row-text">
               <span className="row-title">{i.title}</span>
               <div className="muted">{i.text}</div>
             </span>
-            <span className="badge">этап 4</span>
-          </div>
+            <IconChevron size={18} style={{ color: 'var(--text-2)' }} />
+          </Link>
         ))}
       </div>
 

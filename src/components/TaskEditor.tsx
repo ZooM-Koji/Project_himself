@@ -9,6 +9,9 @@ import FilesField from './FilesField'
 import LinksField from './LinksField'
 import Sheet from './Sheet'
 import { useProjects } from '../lib/activities'
+import { useNavigate } from 'react-router-dom'
+import { askClaude } from '../lib/askClaude'
+import { subjectFacts } from '../lib/subjects'
 
 const OTHER = '__other__'
 
@@ -36,6 +39,8 @@ export default function TaskEditor({
   const [status, setStatus] = useState<TaskStatus>(init.status ?? 'todo')
   const [projectId, setProjectId] = useState(init.projectId ?? '')
   const projects = useProjects() ?? []
+  const navigate = useNavigate()
+  const [askMsg, setAskMsg] = useState<string | null>(null)
   const [notes, setNotes] = useState(init.notes ?? '')
   const [links, setLinks] = useState<TaskLink[]>(init.links ?? [])
   const [pendingLink, setPendingLink] = useState<string | null>(null)
@@ -193,6 +198,37 @@ export default function TaskEditor({
           <FilesField ownerType="task" ownerId={id} />
         </div>
       </div>
+
+      {task && (
+        <div className="helpers">
+          <button
+            type="button"
+            className="pill small"
+            onClick={async () => {
+              const teacher = task.subject ? subjectFacts(task.subject, lessons, new Date()).teachers.map((t) => t.name).join(', ') : ''
+              const r = await askClaude(task, teacher || undefined)
+              setAskMsg(
+                r === 'copied'
+                  ? 'Текст скопирован — вставь его в чат Claude (открылся claude.ai).'
+                  : r === 'failed'
+                    ? 'Не получилось ни поделиться, ни скопировать.'
+                    : r === 'shared'
+                      ? 'Готово. Не забудь про раздел об использовании ИИ, если это письменная работа.'
+                      : null,
+              )
+            }}
+          >
+            ✦ Спросить Claude
+          </button>
+          <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/sto?task=${task.id}`))}>
+            Чек-лист СТО {task.stoChecks?.length ? `(${task.stoChecks.length})` : ''}
+          </button>
+          <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/gost?task=${task.id}`))}>
+            Литература
+          </button>
+        </div>
+      )}
+      {askMsg && <p className="note note-sky">{askMsg}</p>}
 
       <div className="sheet-actions">
         <button className="pill primary" disabled={!title.trim()} onClick={save} style={{ flex: 1, justifyContent: 'center' }}>
