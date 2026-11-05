@@ -7,6 +7,11 @@ import { STO_SUMMARY } from './sto'
 
 export async function buildClaudePrompt(t: Task, teacher?: string): Promise<string> {
   const subj = t.subject ? await db.subjects.get(t.subject) : undefined
+  if (t.area === 'life') {
+    return [`Помоги мне с делом: ${t.title}`, t.dueDate && `Срок: ${formatIsoLong(t.dueDate)}${t.dueTime ? `, ${t.dueTime}` : ''}`, t.notes && `Подробности:\n${t.notes}`, '', 'Предложи, как это лучше сделать: план по шагам и что не забыть.']
+      .filter((l): l is string => typeof l === 'string')
+      .join('\n')
+  }
   const lines = [
     'Помоги мне с учебным заданием (1 курс, САФУ, направление «Экономика»).',
     '',

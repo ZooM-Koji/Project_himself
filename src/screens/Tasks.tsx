@@ -10,6 +10,8 @@ import { useNow } from '../lib/useNow'
 import {
   BUCKET_TITLE,
   bucketOf,
+  isLife,
+  LIFE_LISTS,
   sortTasks,
   useSubjects,
   useTasks,
@@ -30,13 +32,16 @@ const FILTERS: [Filter, string][] = [
 
 const ORDER: Bucket[] = ['overdue', 'today', 'tomorrow', 'week', 'later', 'nodate', 'done']
 
-export default function Tasks() {
+/** Учебные задания или (life) личные дела — один экран, разные фильтры. */
+export default function Tasks({ life = false }: { life?: boolean }) {
   const now = useNow()
-  const tasks = useTasks()
+  const allTasks = useTasks()
+  const tasks = allTasks?.filter((t) => isLife(t) === life)
   const subjects = useSubjects(tasks)
   const [params, setParams] = useSearchParams()
   const filter = (params.get('filter') as Filter) || 'all'
   const subject = params.get('subject') ?? ''
+  const listName = params.get('list') ?? ''
   const [open, setOpen] = useState<Task | null>(null)
   const [draft, setDraft] = useState<TaskDraft | null>(null)
   const [showDone, setShowDone] = useState(false)
@@ -50,7 +55,7 @@ export default function Tasks() {
 
   const [from, to] = weekRange(now)
   const list = (tasks ?? [])
-    .filter((t) => !subject || t.subject === subject)
+    .filter((t) => (life ? !listName || (t.list ?? '') === listName : !subject || t.subject === subject))
     .filter((t) => {
       const b = bucketOf(t, now)
       if (filter === 'overdue') return b === 'overdue'
@@ -69,20 +74,33 @@ export default function Tasks() {
   groups.get('done')?.sort((a, b) => (b.doneAt ?? 0) - (a.doneAt ?? 0))
 
   const taskSubjects = [...new Set((tasks ?? []).map((t) => t.subject).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'))
+  const lists = [...new Set([...LIFE_LISTS, ...(tasks ?? []).map((t) => t.list ?? '').filter(Boolean)])]
 
   return (
     <>
-      <PageHead title="Задания" />
-      <QuickTaskInput subjects={subjects} onMore={setDraft} />
+      <PageHead title={life ? 'Мои дела' : 'Задания'} back={life ? '/life' : undefined} />
+      {life && (
+        <div className="chips">
+          <button className={`pill small${!listName ? ' active' : ''}`} onClick={() => setParam('list', '')}>
+            Все списки
+          </button>
+          {lists.map((l) => (
+            <button key={l} className={`pill small${listName === l ? ' active' : ''}`} onClick={() => setParam('list', l)}>
+              {l}
+            </button>
+          ))}
+        </div>
+      )}
+      <QuickTaskInput subjects={subjects} onMore={setDraft} life={life ? { list: listName } : undefined} />
 
       <div className="chips" style={{ marginTop: 14 }}>
-        {FILTERS.map(([f, label]) => (
+        {FILTERS.map(([f, label0]) => [f, life && f === 'done' ? 'Сделано' : label0] as const).map(([f, label]) => (
           <button key={f} className={filter === f ? 'pill small active' : 'pill small'} onClick={() => setParam('filter', f === 'all' ? '' : f)}>
             {label}
           </button>
         ))}
       </div>
-      {taskSubjects.length > 0 && (
+      {!life && taskSubjects.length > 0 && (
         <select className="input subject-filter" value={subject} onChange={(e) => setParam('subject', e.target.value)} aria-label="Предмет">
           <option value="">Все предметы</option>
           {taskSubjects.map((s) => (
@@ -96,10 +114,12 @@ export default function Tasks() {
       {tasks && list.length === 0 && (
         <Empty
           icon={<IconTasks />}
-          title={tasks.length === 0 ? 'Заданий пока нет' : 'Здесь пусто'}
+          title={tasks.length === 0 ? (life ? 'Личных дел пока нет' : 'Заданий пока нет') : 'Здесь пусто'}
           text={
             tasks.length === 0
-              ? 'Напиши задание в строке выше, например «лаба по цифровой культуре до чт».'
+              ? life
+                ? 'Всё, что не про учёбу: «купить кроссовки до сб», «записаться к врачу завтра», «накопить на ноутбук».'
+                : 'Напиши задание в строке выше, например «лаба по цифровой культуре до чт».'
               : filter === 'overdue'
                 ? 'Просроченных заданий нет — так держать.'
                 : 'Под этот фильтр ничего не подходит.'
@@ -115,7 +135,7 @@ export default function Tasks() {
             <section key={b}>
               <h2 className={`section-title${b === 'overdue' ? ' danger' : ''}`}>
                 <span>
-                  {BUCKET_TITLE[b]} <span className="count">{items.length}</span>
+                  {life && b === 'done' ? 'Сделано' : BUCKET_TITLE[b]} <span className="count">{items.length}</span>
                 </span>
                 {b === 'done' && filter !== 'done' && (
                   <button className="link-btn" onClick={() => setShowDone(!showDone)}>
@@ -136,7 +156,7 @@ export default function Tasks() {
       </div>
 
       {open && <TaskEditor task={open} subjects={subjects} onClose={() => setOpen(null)} />}
-      {draft && <TaskEditor draft={draft} subjects={subjects} onClose={() => setDraft(null)} />}
+      {draft && <TaskEditor draft={life ? { ...draft, area: 'life', list: draft.list ?? listName } : draft} subjects={subjects} onClose={() => setDraft(null)} />}
     </>
   )
 }

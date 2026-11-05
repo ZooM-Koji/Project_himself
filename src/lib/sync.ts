@@ -9,7 +9,7 @@ import { mergeTables, tablesHash, type Tables } from './merge'
 import { DiskError, downloadSync, forgetToken, getToken, remoteModified, takeLoginHandoff, uploadSync } from './yadisk'
 
 /** Таблицы, которые синхронизируются (как в резервной копии, без файлов). */
-const SYNCED = ['tasks', 'scheduleRules', 'subjects', 'notes', 'quickLinks', 'projects', 'events', 'refs', 'manualLessons'] as const
+const SYNCED = ['tasks', 'scheduleRules', 'subjects', 'notes', 'quickLinks', 'projects', 'events', 'refs', 'manualLessons', 'gymExercises', 'workouts', 'bodyLog', 'gymGoals'] as const
 
 export interface SyncStatus {
   at: string // когда закончили
@@ -97,14 +97,26 @@ const AFTER_EDIT_MS = 20_000
 
 /** Автосинхронизация: при запуске, при возврате в приложение, при появлении сети и через 20 с после правок. */
 export async function startAutoSync() {
-  if (await takeLoginHandoff()) void syncNow() // только что вошли — сразу синхронизируемся
+  // Вход в Яндекс в установленном приложении открывается в отдельном окне браузера:
+  // токен приходит через localStorage, а окно «Зачётки» уже открыто. Забираем его сразу —
+  // при запуске, при возврате в приложение и по событию storage (из другого окна).
+  const handoff = async () => {
+    if (await takeLoginHandoff()) void syncNow()
+  }
+  await handoff()
+  window.addEventListener('storage', (e) => e.key === 'zachetka.oauthToken' && e.newValue && void handoff())
+  window.addEventListener('focus', () => void handoff())
   const soon = (minGap: number) => {
     if (Date.now() - lastAuto < minGap) return
     lastAuto = Date.now()
     void getToken().then((t) => (t ? syncNow() : undefined))
   }
   setTimeout(() => soon(0), 3000)
-  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && soon(2 * 60_000))
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return
+    void handoff()
+    soon(2 * 60_000)
+  })
   window.addEventListener('online', () => soon(0))
   Dexie.on('storagemutated', (parts) => {
     if (Date.now() < ownWritesUntil) return

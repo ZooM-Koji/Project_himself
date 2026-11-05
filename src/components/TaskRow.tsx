@@ -33,6 +33,7 @@ export default function TaskRow({ task, now, onOpen }: { task: Task; now: Date; 
             <span className={overdue ? 'due overdue' : 'due'}>{formatDue(task.dueDate, task.dueTime, now)}</span>
           )}
           {task.subject && <span className="task-subject">{task.subject}</span>}
+          {task.area === 'life' && <span className="task-subject task-life">{task.list || 'личное'}</span>}
           {project && <span className="task-subject task-project">{project}</span>}
           {task.status === 'doing' && <span className="badge">в работе</span>}
           {task.notes && <IconNote size={14} />}

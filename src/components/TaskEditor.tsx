@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { addDays, formatDue } from '../lib/dates'
 import { isoDate, useSchedule } from '../lib/schedule'
 import { findNextPair } from '../lib/quickParse'
-import { addTask, deleteTask, STATUS_LABEL, updateTask, type Task, type TaskDraft, type TaskStatus } from '../lib/tasks'
+import { addTask, deleteTask, LIFE_LISTS, STATUS_LABEL, updateTask, type Task, type TaskDraft, type TaskStatus } from '../lib/tasks'
 import { db, type TaskLink } from '../lib/db'
 import { IconTrash } from './Icons'
 import FilesField from './FilesField'
@@ -32,6 +32,8 @@ export default function TaskEditor({
   onClose: () => void
 }) {
   const init = task ?? draft ?? { title: '', subject: '' }
+  const life = init.area === 'life'
+  const [list, setList] = useState(init.list ?? '')
   const [title, setTitle] = useState(init.title)
   const [subject, setSubject] = useState(init.subject)
   const [customSubject, setCustomSubject] = useState(!!init.subject && !subjects.includes(init.subject))
@@ -68,7 +70,8 @@ export default function TaskEditor({
     const pending = pendingLink // не забыть ссылку, которую ввели, но не нажали «Добавить»
     const data = {
       title: title.trim(),
-      subject: subject.trim(),
+      subject: life ? '' : subject.trim(),
+      ...(life ? { area: 'life' as const, list: list.trim() } : {}),
       dueDate: dueDate || undefined,
       dueTime: dueDate && dueTime ? dueTime : undefined,
       status,
@@ -90,13 +93,24 @@ export default function TaskEditor({
   }
 
   return (
-    <Sheet title={task ? 'Задание' : 'Новое задание'} onClose={cancel}>
+    <Sheet title={life ? (task ? 'Дело' : 'Новое дело') : task ? 'Задание' : 'Новое задание'} onClose={cancel}>
       <div className="form">
         <label className="field">
           <span>Что сделать</span>
           <textarea className="input" rows={2} value={title} onChange={(e) => setTitle(e.target.value)} autoFocus={!task} />
         </label>
 
+        {life ? (
+          <label className="field">
+            <span>Список</span>
+            <input className="input" list="life-lists" value={list} onChange={(e) => setList(e.target.value)} placeholder="Дом, Покупки, Здоровье… или свой" />
+            <datalist id="life-lists">
+              {LIFE_LISTS.map((l) => (
+                <option key={l} value={l} />
+              ))}
+            </datalist>
+          </label>
+        ) : (
         <label className="field">
           <span>Предмет</span>
           {customSubject ? (
@@ -122,6 +136,7 @@ export default function TaskEditor({
             </select>
           )}
         </label>
+        )}
 
         {projects.length > 0 && (
           <label className="field">
@@ -221,12 +236,16 @@ export default function TaskEditor({
           >
             ✦ Спросить Claude
           </button>
-          <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/sto?task=${task.id}`))}>
-            Чек-лист СТО {task.stoChecks?.length ? `(${task.stoChecks.length})` : ''}
-          </button>
-          <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/gost?task=${task.id}`))}>
-            Литература
-          </button>
+          {!life && (
+            <>
+              <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/sto?task=${task.id}`))}>
+                Чек-лист СТО {task.stoChecks?.length ? `(${task.stoChecks.length})` : ''}
+              </button>
+              <button type="button" className="pill small" onClick={() => (onClose(), navigate(`/study/gost?task=${task.id}`))}>
+                Литература
+              </button>
+            </>
+          )}
           {task.dueDate && (
             <a className="pill small" href={googleCalendarUrl(task) ?? undefined} target="_blank" rel="noreferrer noopener" title="Создать напоминание в Google Календаре">
               В Google Календарь

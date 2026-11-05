@@ -1919,3 +1919,295 @@ button.tile:active {
   margin-left: 6px;
   vertical-align: -3px;
 }
+
+.task-life {
+  color: var(--ok);
+}
+
+/* ===== Расписание из сообщения ===== */
+.paste-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--card-soft);
+}
+
+.paste-row + .paste-row {
+  margin-top: 8px;
+}
+
+.paste-row.off {
+  opacity: 0.5;
+}
+
+.paste-row .input {
+  background: var(--card);
+}
+
+.paste-src {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* ===== Жизнь ===== */
+.tone-pink {
+  background: var(--pink-soft);
+  color: var(--pink);
+}
+
+.life-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.life-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.life-head .row-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.life-head .row-title {
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.life-head .row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.life-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 2px 0;
+  border-top: 1px solid var(--line);
+}
+
+.life-line span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .side-link.side-sub {
+    padding: 8px 14px 8px 34px;
+    font-size: 15px;
+  }
+}
+
+/* ===== Зал ===== */
+.gym-start {
+  margin-bottom: 4px;
+}
+
+.workout-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.wi-last {
+  font-size: 13px;
+}
+
+.wi-sug {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+.wi-sug.sug-up {
+  background: var(--ok-soft);
+}
+.wi-sug.sug-down,
+.wi-sug.sug-deload {
+  background: var(--warn-soft);
+}
+.wi-sug.sug-start {
+  background: var(--sky-soft);
+}
+
+.sets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+}
+
+.sets.time .set-row {
+  grid-template-columns: 26px 1fr 44px;
+}
+
+.set-head {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.set-row .input {
+  padding: 9px 10px;
+  text-align: center;
+}
+
+.set-row.done .input {
+  background: var(--ok-soft);
+}
+
+.set-n {
+  font-weight: 800;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.set-check {
+  width: 44px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--card-soft);
+  color: var(--text-2);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.set-check.on {
+  background: var(--ok);
+  color: #fff;
+}
+
+.pr-badge {
+  position: absolute;
+  right: 50px;
+  top: -8px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--warn);
+  color: #fff;
+}
+
+.rest-timer {
+  /* сверху — чтобы не закрывать подходы и кнопки внизу */
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(12px + env(safe-area-inset-top));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--r-pill);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 800;
+  box-shadow: var(--shadow);
+}
+
+
+.date-plain {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-2);
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.picker-list {
+  max-height: 46dvh;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.trend {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.trend.up {
+  color: var(--ok);
+}
+.trend.down {
+  color: var(--danger);
+}
+
+.goal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.goal-row + .goal-row {
+  border-top: 1px solid var(--line);
+}
+
+/* График */
+.spark svg {
+  width: 100%;
+  height: 90px;
+  display: block;
+}
+
+.spark-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.spark-fill {
+  fill: var(--accent-soft);
+  opacity: 0.6;
+}
+
+.spark-dot {
+  fill: var(--card);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.spark-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
