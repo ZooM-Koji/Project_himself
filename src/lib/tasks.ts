@@ -7,6 +7,12 @@ import { useAllSubjects } from './useAllSubjects'
 
 export type { Task, TaskStatus }
 
+/** Личное дело (вкладка «Жизнь → Мои дела»), а не учебное задание. */
+export const isLife = (t: Pick<Task, 'area'>) => t.area === 'life'
+
+/** Стандартные списки личных дел (свои добавляются просто вводом нового названия). */
+export const LIFE_LISTS = ['Дом', 'Покупки', 'Здоровье', 'Деньги', 'Планы']
+
 export const STATUS_LABEL: Record<TaskStatus, string> = {
   todo: 'Не начато',
   doing: 'В работе',

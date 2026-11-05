@@ -50,6 +50,8 @@ export interface Task {
   links: TaskLink[]
   doneAt?: number // когда отмечено «сдано»
   stoChecks?: string[] // отмеченные пункты чек-листа СТО (этап 4)
+  area?: 'life' // личное дело (не учёба): показывается в «Жизнь → Мои дела», а не в «Заданиях»
+  list?: string // список личных дел: «Дом», «Покупки»…
   createdAt: number
   updatedAt: number
   deleted: boolean
@@ -170,6 +172,48 @@ export interface ManualLesson {
   deleted: boolean
 }
 
+/** Своё упражнение (или изменённое стандартное — тот же id). Стандартные — в src/lib/gym.ts. */
+export interface GymExerciseRec {
+  id: string
+  name: string
+  group: string
+  kind: 'weight' | 'bodyweight' | 'time'
+  reps: [number, number]
+  step: number
+  custom?: boolean
+  updatedAt: number
+  deleted: boolean
+}
+
+/** Тренировка: упражнения с подходами — одной записью (так проще синхронизировать). */
+export interface Workout {
+  id: string
+  date: string // YYYY-MM-DD
+  title: string
+  items: { exerciseId: string; sets: { w: number; r: number; done: boolean }[]; note?: string }[]
+  note: string
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
+export interface BodyEntry {
+  id: string
+  date: string
+  weight: number // кг
+  updatedAt: number
+  deleted: boolean
+}
+
+export interface GymGoal {
+  id: string
+  exerciseId: string
+  target: number // кг (лучший подход по расчётному максимуму) или повторы для своего веса
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
 class ZachetkaDB extends Dexie {
   kv!: Table<KV, string>
   scheduleRules!: Table<ScheduleRule, string>
@@ -182,6 +226,10 @@ class ZachetkaDB extends Dexie {
   events!: Table<CalEvent, string>
   refs!: Table<Reference, string>
   manualLessons!: Table<ManualLesson, string>
+  gymExercises!: Table<GymExerciseRec, string>
+  workouts!: Table<Workout, string>
+  bodyLog!: Table<BodyEntry, string>
+  gymGoals!: Table<GymGoal, string>
 
   constructor() {
     super('zachetka')
@@ -213,6 +261,13 @@ class ZachetkaDB extends Dexie {
     this.version(6).stores({
       manualLessons: 'id, date, source',
     })
+    // v7: «Жизнь → Зал». Только новые таблицы.
+    this.version(7).stores({
+      gymExercises: 'id',
+      workouts: 'id, date',
+      bodyLog: 'id, date',
+      gymGoals: 'id',
+    })
   }
 }
 
@@ -220,7 +275,7 @@ export const db = new ZachetkaDB()
 
 // Правка всегда «новее» той версии, которую правят — даже если часы на устройстве отстают
 // (иначе при синхронизации запись с «будущим» временем перебила бы свежую правку).
-for (const t of [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.refs, db.manualLessons] as Table<{ updatedAt: number }, string>[]) {
+for (const t of [db.tasks, db.scheduleRules, db.subjects, db.notes, db.quickLinks, db.projects, db.events, db.refs, db.manualLessons, db.gymExercises, db.workouts, db.bodyLog, db.gymGoals] as Table<{ updatedAt: number }, string>[]) {
   t.hook('updating', (mods, _key, obj) => {
     const next = (mods as { updatedAt?: unknown }).updatedAt
     if (typeof next === 'number' && typeof obj.updatedAt === 'number' && next <= obj.updatedAt) return { updatedAt: obj.updatedAt + 1 }

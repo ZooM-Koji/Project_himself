@@ -5,6 +5,7 @@ import EventEditor from '../components/EventEditor'
 import { IconBack, IconEdit } from '../components/Icons'
 import Markdown from '../components/Markdown'
 import ProjectEditor from '../components/ProjectEditor'
+import PasteScheduleSheet from '../components/PasteScheduleSheet'
 import QuickTaskInput from '../components/QuickTaskInput'
 import TaskEditor from '../components/TaskEditor'
 import TaskRow from '../components/TaskRow'
@@ -27,6 +28,7 @@ export default function ProjectPage() {
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [draft, setDraft] = useState<TaskDraft | null>(null)
   const [showPast, setShowPast] = useState(false)
+  const [paste, setPaste] = useState(false)
 
   if (project === undefined) return null
   if (project === null || project.deleted)
@@ -85,9 +87,14 @@ export default function ProjectPage() {
         <div className="stack">
           <h2 className="section-title">
             События
-            <button className="link-btn" onClick={() => setOpenEvent('new')}>
-              + Событие
-            </button>
+            <span style={{ display: 'flex', gap: 14 }}>
+              <button className="link-btn" onClick={() => setPaste(true)}>
+                Из сообщения
+              </button>
+              <button className="link-btn" onClick={() => setOpenEvent('new')}>
+                + Событие
+              </button>
+            </span>
           </h2>
           {future.length === 0 ? (
             <div className="card">
@@ -142,6 +149,7 @@ export default function ProjectPage() {
         </div>
       </div>
 
+      {paste && <PasteScheduleSheet projectId={project.id} onClose={() => setPaste(false)} />}
       {edit && <ProjectEditor project={project} onClose={() => setEdit(false)} />}
       {openEvent && (
         <EventEditor event={openEvent === 'new' ? undefined : openEvent} draft={{ projectId: project.id }} onClose={() => setOpenEvent(null)} />

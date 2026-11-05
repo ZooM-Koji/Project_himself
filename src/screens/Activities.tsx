@@ -6,6 +6,7 @@ import EventEditor from '../components/EventEditor'
 import { IconChevron, IconStar } from '../components/Icons'
 import PageHead from '../components/PageHead'
 import ProjectEditor from '../components/ProjectEditor'
+import PasteScheduleSheet from '../components/PasteScheduleSheet'
 import { KIND_LABEL, useEvents, useProjects, type CalEvent } from '../lib/activities'
 import { addDays, capitalize, formatIsoLong } from '../lib/dates'
 import { isoDate } from '../lib/schedule'
@@ -21,6 +22,7 @@ export default function Activities() {
   const [newProject, setNewProject] = useState(false)
   const [openEvent, setOpenEvent] = useState<CalEvent | 'new' | null>(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [paste, setPaste] = useState(false)
 
   const today = isoDate(new Date())
   const upcoming = events.filter((e) => e.date >= today && e.date <= isoDate(addDays(new Date(), 14)))
@@ -53,7 +55,10 @@ export default function Activities() {
 
   return (
     <>
-      <PageHead title="Активности" />
+      <PageHead title="Активности" back="/life" />
+      <button className="pill primary" style={{ width: '100%', justifyContent: 'center', marginBottom: 8 }} onClick={() => setPaste(true)}>
+        Вставить расписание из сообщения
+      </button>
 
       <h2 className="section-title">
         Ближайшие 2 недели
@@ -106,6 +111,7 @@ export default function Activities() {
       )}
 
       {newProject && <ProjectEditor onClose={() => setNewProject(false)} onCreated={(id) => navigate(projectPath(id))} />}
+      {paste && <PasteScheduleSheet onClose={() => setPaste(false)} />}
       {openEvent && <EventEditor event={openEvent === 'new' ? undefined : openEvent} onClose={() => setOpenEvent(null)} />}
     </>
   )

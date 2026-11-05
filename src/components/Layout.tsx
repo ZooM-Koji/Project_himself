@@ -6,6 +6,8 @@ import {
   IconHome,
   IconPlus,
   IconSettings,
+  IconDumbbell,
+  IconHeart,
   IconStar,
   IconTasks,
 } from './Icons'
@@ -19,8 +21,16 @@ const NAV: NavItem[] = [
   { to: '/schedule', label: 'Расписание', short: 'Пары', icon: <IconCalendar /> },
   { to: '/tasks', label: 'Задания', short: 'Задания', icon: <IconTasks /> },
   { to: '/study', label: 'Учёба', short: 'Учёба', icon: <IconBook /> },
-  { to: '/activities', label: 'Активности', short: 'Актив', icon: <IconStar /> },
+  { to: '/life', label: 'Жизнь', short: 'Жизнь', icon: <IconHeart /> },
 ]
+
+/** На компьютере «Жизнь» раскрыта: отдельные пункты. */
+const SIDE_LIFE: NavItem[] = [
+  { to: '/life/todo', label: 'Мои дела', short: '', icon: <IconTasks /> },
+  { to: '/gym', label: 'Зал', short: '', icon: <IconDumbbell /> },
+  { to: '/activities', label: 'Активности', short: '', icon: <IconStar /> },
+]
+const LIFE_PATHS = ['/life', '/gym', '/activities']
 
 export default function Layout() {
   const [addOpen, setAddOpen] = useState(false)
@@ -47,8 +57,18 @@ export default function Layout() {
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
           Зачётка
         </div>
-        {NAV.map((n) => (
+        {NAV.slice(0, 4).map((n) => (
           <NavLink key={n.to} to={n.to} end={n.to === '/'} className={cls('side-link')}>
+            {n.icon}
+            {n.label}
+          </NavLink>
+        ))}
+        <NavLink to="/life" end className={cls('side-link side-group')}>
+          <IconHeart />
+          Жизнь
+        </NavLink>
+        {SIDE_LIFE.map((n) => (
+          <NavLink key={n.to} to={n.to} className={cls('side-link side-sub')}>
             {n.icon}
             {n.label}
           </NavLink>
@@ -70,7 +90,14 @@ export default function Layout() {
       {/* Телефон: нижняя навигация и кнопка «+» */}
       <nav className="bottom-nav" aria-label="Основное меню">
         {NAV.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.to === '/'} className={cls('nav-link')}>
+          <NavLink
+            key={n.to}
+            to={n.to}
+            end={n.to === '/'}
+            className={({ isActive }) =>
+              isActive || (n.to === '/life' && LIFE_PATHS.some((p) => location.pathname.startsWith(p))) ? 'nav-link active' : 'nav-link'
+            }
+          >
             <span className="nav-icon">{n.icon}</span>
             {n.short}
           </NavLink>

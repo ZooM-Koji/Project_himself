@@ -20,7 +20,10 @@ export default function QuickTaskInput({
   autoFocus,
   defaultSubject,
   projectId,
+  life,
 }: {
+  /** Личное дело: предмет не угадываем, задача уходит в «Мои дела» (в указанный список). */
+  life?: { list: string }
   defaultSubject?: string
   /** На странице проекта: задача привязывается к проекту, предмет не угадываем. */
   projectId?: string
@@ -40,8 +43,8 @@ export default function QuickTaskInput({
     r.subject = defaultSubject
     if (r.pair && again.pair) (r.pair = again.pair), (r.dueDate = again.dueDate), (r.dueTime = again.dueTime)
   }
-  if (projectId) r.subject = undefined
-  const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime, ...(projectId ? { projectId } : {}) }
+  if (projectId || life) r.subject = undefined
+  const draft: TaskDraft = { title: r.title, subject: r.subject ?? '', dueDate: r.dueDate, dueTime: r.dueTime, ...(projectId ? { projectId } : {}), ...(life ? { area: 'life' as const, list: life.list } : {}) }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,7 +61,7 @@ export default function QuickTaskInput({
           className="input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Например: конспект по статистике до пт"
+          placeholder={life ? 'Например: оплатить телефон до пт' : 'Например: конспект по статистике до пт'}
           enterKeyHint="done"
           autoFocus={autoFocus}
           aria-label="Быстро добавить задание"

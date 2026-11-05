@@ -183,3 +183,22 @@ export const IconEdit = (p: P) => (
     <path d="m13.5 6.5 4 4" />
   </Base>
 )
+
+export const IconHeart = (p: P) => (
+  <Base {...p}>
+    <path d="M12 20s-7-4.4-9-9a4.8 4.8 0 0 1 9-3 4.8 4.8 0 0 1 9 3c-2 4.6-9 9-9 9z" />
+  </Base>
+)
+
+export const IconDumbbell = (p: P) => (
+  <Base {...p}>
+    <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" />
+  </Base>
+)
+
+export const IconTimer = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="13" r="8" />
+    <path d="M12 9v4l2.5 2M9.5 2.5h5" />
+  </Base>
+)

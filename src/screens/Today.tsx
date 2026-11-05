@@ -71,7 +71,8 @@ export default function Today() {
   const navigate = useNavigate()
   const tasks = useTasks()
   const subjects = useSubjects(tasks)
-  const stats = taskStats(tasks ?? [], now)
+  const stats = taskStats((tasks ?? []).filter((t) => t.area !== 'life'), now) // плитки ведут в «Задания» — там только учёба
+  const lifeToday = (tasks ?? []).filter((t) => t.area === 'life' && t.status !== 'done' && t.dueDate === isoDate(now)).length
   const soon = (tasks ?? [])
     .filter((t) => ['overdue', 'today', 'tomorrow'].includes(bucketOf(t, now)))
     .sort(sortTasks)
@@ -89,6 +90,7 @@ export default function Today() {
   const summary: string[] = []
   if (stats.today > 0) summary.push(`${stats.today} ${plural(stats.today, ['задание', 'задания', 'заданий'])} на сегодня`)
   if (s.file && pairs > 0) summary.push(`${pairs} ${plural(pairs, ['пара', 'пары', 'пар'])}`)
+  if (lifeToday > 0) summary.push(`${lifeToday} ${plural(lifeToday, ['личное дело', 'личных дела', 'личных дел'])}`)
   if (stats.overdue > 0) summary.push(`${stats.overdue} просрочено`)
   const todayEvents = soonEvents.filter((e) => e.date === isoDate(now)).length
   if (todayEvents > 0) summary.push(`${todayEvents} ${plural(todayEvents, ['событие', 'события', 'событий'])}`)
@@ -144,7 +146,7 @@ export default function Today() {
         </div>
         <div className="stack">
           <h2 className="section-title">
-            Задания на сегодня и завтра
+            Дела на сегодня и завтра
             <Link to="/tasks" className="muted" style={{ fontWeight: 600 }}>
               Все
             </Link>
