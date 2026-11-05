@@ -5,6 +5,10 @@ import { groupLabel, isWholeGroup, seriesKey, useSchedule } from '../lib/schedul
 
 /** Адрес файла календаря на сайте (собирается при каждой публикации). */
 export const calendarUrl = () => new URL(`${import.meta.env.BASE_URL}calendar/${GROUP_NUMBER}.ics`, location.origin).href
+/** webcal:// — так подписку понимают календарные приложения (ICSx⁵, Samsung, Apple) */
+export const webcalUrl = () => calendarUrl().replace(/^https?:/, 'webcal:')
+/** Ссылка «подписаться» в Google Календаре — открывает Google с готовым адресом */
+export const googleSubscribeUrl = () => `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl())}`
 
 const configGroups: Record<string, string> = (group as { calendar?: { myGroups?: Record<string, string> } }).calendar?.myGroups ?? {}
 
@@ -82,21 +86,41 @@ export default function CalendarCard() {
         </div>
       )}
 
+      <div className="sheet-actions">
+        <a className="pill primary small" href={googleSubscribeUrl()} target="_blank" rel="noreferrer noopener">
+          Подписаться в Google Календаре
+        </a>
+        <a className="pill small" href={webcalUrl()}>
+          Открыть в приложении-календаре
+        </a>
+      </div>
+
       <details className="howto">
-        <summary>Как поставить виджет на телефон</summary>
+        <summary>Как поставить виджет на телефон — по шагам</summary>
         <ol>
           <li>
-            На компьютере открой <b>calendar.google.com</b> → слева «Другие календари» → «+» → <b>«Добавить по URL»</b> → вставь адрес
-            выше → «Добавить календарь». (С телефона Google так добавить не даёт.)
+            <b>Подписаться (один раз, лучше с компьютера).</b> Открой «Зачётку» на компьютере → «Настройки» → кнопка «Подписаться в
+            Google Календаре» → войди в тот же Google-аккаунт, что на телефоне → «Добавить». Слева в «Других календарях» появится
+            «Пары {GROUP_NUMBER}». С телефона: в Chrome ⋮ → «Версия для ПК», потом нажми эту кнопку. В приложении Google Календаря
+            на телефоне подписаться по ссылке нельзя — так устроил Google.
           </li>
           <li>
-            На телефоне в приложении <b>Google Календарь</b> → меню → «Настройки» → найди календарь «Пары {GROUP_NUMBER}» → включи
-            «Синхронизация».
+            <b>Включить на телефоне (без этого календарь пустой!).</b> Приложение Google Календарь → ☰ меню → внизу «Настройки» →
+            нажми на свой аккаунт или «Показать больше» → «Пары {GROUP_NUMBER}» → включи <b>«Синхронизация»</b>. Потом в ☰ меню
+            поставь галочку у «Пары {GROUP_NUMBER}».
           </li>
           <li>
-            Долгое нажатие на пустом месте рабочего стола → <b>«Виджеты»</b> → «Google Календарь» → виджет <b>«Расписание»</b>.
+            <b>Виджет.</b> Долгое нажатие на пустом месте рабочего стола → «Виджеты» → «Google Календарь» → <b>«Расписание»</b>.
           </li>
         </ol>
+        <p className="muted" style={{ fontSize: 13 }}>
+          Если и после этого пусто — подожди час: Google загружает новую подписку не сразу. Проверить можно на компьютере на
+          calendar.google.com: если там пары видны, дело в шаге 2 на телефоне.
+        </p>
+        <p className="muted" style={{ fontSize: 13 }}>
+          Другой путь без Google: приложение <b>ICSx⁵</b> (бесплатно в F-Droid) — нажми «Открыть в приложении-календаре», оно
+          подпишется прямо с телефона и будет обновлять каждый час; виджет — любой календарный.
+        </p>
         <p className="muted" style={{ fontSize: 13 }}>
           Google обновляет подписки сам, но редко: от нескольких часов до суток (ускорить это нельзя). Поэтому срочные замены
           смотри в «Зачётке» — там пометка «изменено» появляется сразу. В календарь попадают только пары, без заданий.
